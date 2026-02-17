@@ -14,9 +14,10 @@ import {
 export default function LandingPage() {
   const router = useRouter();
 
-  const handleStart = () => {
-    router.push("/onboarding");
-  };
+ const handleStart = () => {
+  router.push("/auth");
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-emerald-50 text-slate-800">
