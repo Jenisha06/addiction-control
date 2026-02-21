@@ -2,44 +2,65 @@
 
 import { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../src/lib/firebase.js";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "../../src/lib/firebase";
 import { useRouter } from "next/navigation";
- 
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      // 1️⃣ Create Auth user
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      const user = userCredential.user;
+
+      // 2️⃣ Create Firestore document
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        createdAt: new Date(),
+        streak: 0,
+        totalFocusTime: 0,
+        onboardingCompleted: false,
+      });
+
+      // 3️⃣ Redirect
       router.push("/onboarding");
+
     } catch (err) {
       setError(err.message || "Failed to sign up");
     }
+
+    setLoading(false);
   };
 
   return (
-    <div>
-       
     <div className="min-h-screen flex items-center justify-center from-blue-50 via-white to-blue-100 px-6">
       <div className="max-w-[1100px] w-full bg-white rounded-3xl shadow-xl flex overflow-hidden border border-blue-100">
 
-       
+        {/* Left Image */}
         <div className="hidden md:flex w-1/2 items-center justify-center">
           <img
             src="/auth.png"
-            alt="Camel illustration"
+            alt="Illustration"
             className="w-75 md:w-120"
           />
         </div>
 
-        
+        {/* Signup Form */}
         <form
           onSubmit={handleSignup}
           className="w-full md:w-1/2 flex flex-col justify-center px-8 md:px-12 py-12"
@@ -49,7 +70,7 @@ export default function SignupPage() {
           </h2>
 
           {error && (
-            <p className="text-red-500 text-sm mb-4 text-center md:text-left">
+            <p className="text-red-500 text-sm mb-4">
               {error}
             </p>
           )}
@@ -82,9 +103,10 @@ export default function SignupPage() {
 
           <button
             type="submit"
-            className="bg-[#91c7da] text-white py-3 rounded-full font-medium shadow-md hover:bg-[#548293] transition-all duration-300 w-full"
+            disabled={loading}
+            className="bg-[#91c7da] text-white py-3 rounded-full font-medium shadow-md hover:bg-[#548293] transition-all duration-300 w-full disabled:opacity-50"
           >
-            Sign Up
+            {loading ? "Creating account..." : "Sign Up"}
           </button>
 
           <p className="text-sm text-gray-600 mt-6 text-center md:text-left">
@@ -95,7 +117,6 @@ export default function SignupPage() {
           </p>
         </form>
       </div>
-    </div>
     </div>
   );
 }

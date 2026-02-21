@@ -2,59 +2,85 @@
 
 import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../src/lib/firebase.js";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, db } from "../../src/lib/firebase";
 import { useRouter } from "next/navigation";
-
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      // 1️⃣ Sign in user
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      const user = userCredential.user;
+
+      // 2️⃣ Check if Firestore user doc exists
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      // 3️⃣ If missing → create it automatically
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          email: user.email,
+          createdAt: new Date(),
+          streak: 0,
+          totalFocusTime: 0,
+          onboardingCompleted: false,
+        });
+      }
+
+      // 4️⃣ Redirect
       router.push("/dashboard");
+
     } catch (err) {
       setError(err.message || "Failed to sign in");
     }
+
+    setLoading(false);
   };
 
   return (
-    <div>
     <div className="min-h-screen flex items-center justify-center from-blue-50 via-white to-blue-100 px-6">
       <div className="max-w-[1100px] w-full bg-white rounded-3xl shadow-xl flex overflow-hidden border border-blue-100">
 
-        
-        <div className="hidden md:flex w-1/2  to-blue-200 items-center justify-center ">
+        <div className="hidden md:flex w-1/2 items-center justify-center">
           <img
             src="/auth.png"
-            alt="Camel illustration"
-            className="w-75 md:w-120  "
+            alt="Illustration"
+            className="w-75 md:w-120"
           />
         </div>
 
-        
         <form
           onSubmit={handleLogin}
           className="w-full md:w-1/2 flex flex-col justify-center px-8 md:px-12 py-12"
         >
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center md:text-left">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">
             Sign In
           </h2>
 
           {error && (
-            <p className="text-red-500 text-sm mb-4 text-center md:text-left">
+            <p className="text-red-500 text-sm mb-4">
               {error}
             </p>
           )}
 
           <div className="mb-4">
-            <label className="text-sm text-gray-6-- block mb-2">
+            <label className="text-sm text-gray-600 block mb-2">
               Email
             </label>
             <input
@@ -81,14 +107,13 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="bg-[#91c7da] text-white py-3 rounded-full font-medium shadow-md hover:bg-[#548293] transition-all duration-300 w-full"
-          
-
+            disabled={loading}
+            className="bg-[#91c7da] text-white py-3 rounded-full font-medium shadow-md hover:bg-[#548293] transition-all duration-300 w-full disabled:opacity-50"
           >
-            Sign In
+            {loading ? "Signing in..." : "Sign In"}
           </button>
 
-          <p className="text-sm text-gray-600 mt-6 text-center md:text-left">
+          <p className="text-sm text-gray-600 mt-6">
             Don't have an account?{" "}
             <a href="/signup" className="font-medium underline">
               Sign up
@@ -96,7 +121,6 @@ export default function LoginPage() {
           </p>
         </form>
       </div>
-    </div>
     </div>
   );
 }

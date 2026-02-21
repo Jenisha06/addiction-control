@@ -6,29 +6,28 @@ import { motion } from "framer-motion";
 import {
   Zap,
   Flame,
-  Clock,
   Plus,
-  ArrowUpRight,
   Trophy,
   Shield,
-  TrendingUp,
-  DollarSign,
   Activity,
+  DollarSign,
   Map,
   Brain,
   MessageSquare,
   AlertCircle,
+  ArrowUpRight,
 } from "lucide-react";
 
 import {
   AreaChart,
   Area,
-  XAxis,
-  YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+
+import { auth, db } from "../../src/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 const mockChartData = [
   { name: "Mon", mood: 2, cravings: 4 },
@@ -43,50 +42,79 @@ const mockChartData = [
 export default function DashboardPage() {
   const router = useRouter();
 
-  // Temporary mock user data (later we connect database)
-  const userData = {
-    level: 3,
-    xp: 2400,
-    streak: 14,
-    shieldCount: 2,
-    moneySaved: 320,
-    caloriesAvoided: 1800,
-    sobrietyDate: "2026-02-01",
-  };
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0 });
 
-  const [timeLeft, setTimeLeft] = useState({
-    days: 0,
-    hours: 0,
-    mins: 0,
-  });
-
+  // 🔐 Load user safely
   useEffect(() => {
+    const loadUser = async () => {
+      try {
+        await new Promise((r) => setTimeout(r, 300));
+        const user = auth.currentUser;
+
+        if (!user) {
+          setLoading(false);
+          return;
+        }
+
+        const snap = await getDoc(doc(db, "users", user.uid));
+
+        if (snap.exists()) {
+          setUserData(snap.data());
+        }
+      } catch (err) {
+        console.error("Dashboard load error:", err);
+      }
+      setLoading(false);
+    };
+
+    loadUser();
+  }, []);
+
+  // ⏳ Sobriety timer
+  useEffect(() => {
+    if (!userData?.sobrietyDate) return;
+
     const interval = setInterval(() => {
-      const now = new Date().getTime();
+      const now = Date.now();
       const start = new Date(userData.sobrietyDate).getTime();
       const diff = Math.max(0, now - start);
 
       setTimeLeft({
         days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-        hours: Math.floor(
-          (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-        ),
-        mins: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+        mins: Math.floor((diff / (1000 * 60)) % 60),
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [userData]);
 
+  // 📈 Level progress
   const levelProgress = useMemo(() => {
+    if (!userData?.level || !userData?.xp) return 0;
+
     const nextLevelXP = userData.level * 1000;
     const currentLevelXP = (userData.level - 1) * 1000;
+
     const progress =
       ((userData.xp - currentLevelXP) /
         (nextLevelXP - currentLevelXP)) *
       100;
+
     return Math.min(100, Math.max(0, progress));
-  }, []);
+  }, [userData]);
+
+  if (loading)
+    return <div className="p-10 text-center font-bold">Loading...</div>;
+
+  if (!userData)
+    return (
+      <div className="p-10 text-center text-red-500 font-bold">
+        No user data found.
+      </div>
+    );
 
   return (
     <motion.div
@@ -100,7 +128,7 @@ export default function DashboardPage() {
           <div className="relative">
             <div className="w-14 h-14 bg-gradient-to-tr from-blue-600 to-emerald-400 rounded-2xl flex items-center justify-center text-white shadow-lg">
               <span className="text-xl font-black">
-                {userData.level}
+                {userData.level ?? 1}
               </span>
             </div>
             <div className="absolute -top-1 -right-1 bg-yellow-400 p-1 rounded-full text-white">
@@ -121,30 +149,19 @@ export default function DashboardPage() {
               />
             </div>
 
-            <p className="text-[10px] text-slate-400 font-bold uppercase">
-              {userData.xp} / {userData.level * 1000} XP
+            <p className="text-xs text-slate-400 font-bold uppercase">
+              {userData.xp ?? 0} / {(userData.level ?? 1) * 1000} XP
             </p>
           </div>
         </div>
 
         <div className="flex gap-3">
-          <div className="flex items-center gap-1 px-3 py-1 bg-rose-50 rounded-full text-rose-600">
-            <Flame size={16} />
-            <span className="font-black text-sm">
-              {userData.streak}d
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1 px-3 py-1 bg-blue-50 rounded-full text-blue-600">
-            <Shield size={16} />
-            <span className="font-black text-sm">
-              {userData.shieldCount}
-            </span>
-          </div>
+          <StatBubble icon={<Flame size={16} />} value={`${userData.streak ?? 0}d`} />
+          <StatBubble icon={<Shield size={16} />} value={userData.shieldCount ?? 0} />
         </div>
       </header>
 
-      {/* SOBRIETY TIMER */}
+      {/* TIMER */}
       <section className="bg-white rounded-3xl p-8 shadow-sm border text-center space-y-4">
         <p className="text-xs uppercase text-slate-400">
           Alcohol Free For
@@ -167,59 +184,25 @@ export default function DashboardPage() {
 
       {/* ACTION GRID */}
       <section className="grid grid-cols-2 gap-4">
-        <DashboardCard
-          title="Recovery Map"
-          icon={<Map size={24} />}
-          onClick={() => router.push("/map")}
-        />
-
-        <DashboardCard
-          title="CBT Exercises"
-          icon={<Brain size={24} />}
-          onClick={() => router.push("/cbt")}
-        />
-
-        <DashboardCard
-          title="Community"
-          icon={<MessageSquare size={24} />}
-          onClick={() => router.push("/community")}
-        />
-
-        <DashboardCard
-          title="Craving Help"
-          icon={<AlertCircle size={24} />}
-          onClick={() => router.push("/emergency")}
-        />
+        <DashboardCard title="Recovery Map" icon={<Map size={24} />} onClick={() => router.push("/map")} />
+        <DashboardCard title="CBT Exercises" icon={<Brain size={24} />} onClick={() => router.push("/cbt")} />
+        <DashboardCard title="Community" icon={<MessageSquare size={24} />} onClick={() => router.push("/community")} />
+        <DashboardCard title="Craving Help" icon={<AlertCircle size={24} />} onClick={() => router.push("/emergency")} />
       </section>
 
       {/* INSIGHTS */}
       <section>
         <div className="flex justify-between items-center mb-4">
           <h2 className="font-bold text-lg">Your Insights</h2>
-          <button
-            onClick={() => router.push("/insights")}
-            className="text-blue-600 text-sm font-bold"
-          >
+          <button onClick={() => router.push("/insights")} className="text-blue-600 text-sm font-bold">
             View All <ArrowUpRight size={14} className="inline" />
           </button>
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-6">
-          <StatMiniCard
-            label="Saved"
-            value={`$${userData.moneySaved}`}
-            icon={<DollarSign size={18} />}
-          />
-          <StatMiniCard
-            label="Calories"
-            value={userData.caloriesAvoided}
-            icon={<Zap size={18} />}
-          />
-          <StatMiniCard
-            label="Health"
-            value="84%"
-            icon={<Activity size={18} />}
-          />
+          <StatMiniCard label="Saved" value={`$${userData.moneySaved ?? 0}`} icon={<DollarSign size={18} />} />
+          <StatMiniCard label="Calories" value={userData.caloriesAvoided ?? 0} icon={<Zap size={18} />} />
+          <StatMiniCard label="Health" value="84%" icon={<Activity size={18} />} />
         </div>
 
         <div className="bg-white p-6 rounded-3xl shadow-sm border h-48">
@@ -227,18 +210,8 @@ export default function DashboardPage() {
             <AreaChart data={mockChartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <Tooltip />
-              <Area
-                type="monotone"
-                dataKey="mood"
-                stroke="#3B82F6"
-                fill="#BFDBFE"
-              />
-              <Area
-                type="monotone"
-                dataKey="cravings"
-                stroke="#EF4444"
-                fill="transparent"
-              />
+              <Area type="monotone" dataKey="mood" stroke="#3B82F6" fill="#BFDBFE" />
+              <Area type="monotone" dataKey="cravings" stroke="#EF4444" fill="transparent" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -247,17 +220,13 @@ export default function DashboardPage() {
   );
 }
 
-/* SMALL COMPONENTS */
+/* COMPONENTS */
 
 function TimerUnit({ value, label }) {
   return (
     <div>
-      <div className="text-3xl font-black text-blue-600">
-        {value}
-      </div>
-      <div className="text-xs text-slate-400 uppercase">
-        {label}
-      </div>
+      <div className="text-3xl font-black text-blue-600">{value}</div>
+      <div className="text-xs text-slate-400 uppercase">{label}</div>
     </div>
   );
 }
@@ -279,9 +248,16 @@ function StatMiniCard({ label, value, icon }) {
     <div className="bg-white p-4 rounded-2xl text-center shadow-sm border">
       <div className="mb-2 text-blue-600">{icon}</div>
       <div className="font-bold">{value}</div>
-      <div className="text-xs text-slate-400 uppercase">
-        {label}
-      </div>
+      <div className="text-xs text-slate-400 uppercase">{label}</div>
+    </div>
+  );
+}
+
+function StatBubble({ icon, value }) {
+  return (
+    <div className="flex items-center gap-1 px-3 py-1 bg-blue-50 rounded-full text-blue-600">
+      {icon}
+      <span className="font-black text-sm">{value}</span>
     </div>
   );
 }
