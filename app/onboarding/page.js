@@ -2,15 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { auth } from "../../src/lib/firebase";
+import { db } from "../../src/lib/firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
-  CheckCircle2,
   Heart,
   Lock,
   Activity,
   Sparkles,
-  ChevronRight,
 } from "lucide-react";
 
 const assessmentQuestions = [
@@ -71,63 +72,119 @@ const assessmentQuestions = [
 export default function OnboardingPage() {
   const router = useRouter();
 
-  const [step, setStep] = useState(0); // 0 welcome, 1 quiz, 2 result
+  const [step, setStep] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
+  const [loading, setLoading] = useState(false);
 
-  const handleNext = () => {
-    if (step === 0) {
-      setStep(1);
-    } else if (step === 1) {
+  const selectOption = (option) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [currentQuestion]: option,
+    }));
+
+    setTimeout(() => {
       if (currentQuestion < assessmentQuestions.length - 1) {
         setCurrentQuestion((prev) => prev + 1);
       } else {
         setStep(2);
       }
-    } else {
-      router.push("/dashboard");
-    }
+    }, 250);
   };
 
-  const selectOption = (option) => {
-    setAnswers({
-      ...answers,
-      [currentQuestion]: option,
+  const calculateRiskLevel = () => {
+    let score = 0;
+
+    Object.values(answers).forEach((answer) => {
+      if (
+        answer === "4+ times a week" ||
+        answer === "Always" ||
+        answer === "Frequently" ||
+        answer === "Regularly" ||
+        answer === "Significantly"
+      ) {
+        score += 3;
+      } else if (
+        answer === "Often" ||
+        answer === "Sometimes" ||
+        answer === "Daily"
+      ) {
+        score += 2;
+      } else if (
+        answer === "Rarely" ||
+        answer === "Once in a while"
+      ) {
+        score += 1;
+      }
     });
 
-    setTimeout(handleNext, 300);
+    if (score >= 15) return "High Risk";
+    if (score >= 8) return "Moderate Risk";
+    return "Low Risk";
+  };
+
+  const handleFinish = async () => {
+    try {
+      setLoading(true);
+
+      const user = auth.currentUser;
+      if (!user) {
+        alert("User not authenticated");
+        return;
+      }
+
+      const riskLevel = calculateRiskLevel();
+      const primaryGoal = answers[8] || "Moderation";
+
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        email: user.email,
+        riskLevel,
+        goalType: primaryGoal,
+        assessmentAnswers: answers,
+        xp: 0,
+        coins: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        level: 1,
+        createdAt: serverTimestamp(),
+      });
+
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Onboarding error:", error);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Background Blobs */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-100 rounded-full blur-3xl opacity-50 translate-y-1/2 -translate-x-1/2" />
-
       <AnimatePresence mode="wait">
+
         {/* Welcome */}
         {step === 0 && (
           <motion.div
             key="welcome"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="max-w-md w-full bg-white p-10 rounded-[40px] shadow-2xl text-center z-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="max-w-md w-full bg-white p-10 rounded-[40px] shadow-2xl text-center"
           >
             <div className="w-20 h-20 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-8">
               <Heart size={40} fill="currentColor" />
             </div>
 
-            <h1 className="text-3xl font-extrabold text-slate-900 mb-4">
+            <h1 className="text-3xl font-extrabold mb-4">
               Welcome Home.
             </h1>
 
-            <p className="text-slate-500 mb-10 leading-relaxed">
-              Let’s understand where you are so we can build your personalized
-              path.
+            <p className="text-slate-500 mb-10">
+              Let’s understand where you are so we can build your personalized path.
             </p>
 
-            <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100 text-left">
+            <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border text-left">
               <Lock className="text-blue-500 shrink-0" size={20} />
               <p className="text-sm text-slate-600 font-medium italic">
                 Anonymous & Secure. Your data is for you only.
@@ -135,8 +192,8 @@ export default function OnboardingPage() {
             </div>
 
             <button
-              onClick={handleNext}
-              className="w-full bg-blue-600 text-white py-5 rounded-3xl font-bold text-lg mt-10 hover:bg-blue-700 transition-all shadow-xl"
+              onClick={() => setStep(1)}
+              className="w-full bg-blue-600 text-white py-5 rounded-3xl font-bold mt-10"
             >
               Continue
             </button>
@@ -147,55 +204,25 @@ export default function OnboardingPage() {
         {step === 1 && (
           <motion.div
             key="quiz"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="max-w-lg w-full z-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="max-w-lg w-full"
           >
-            <div className="mb-10">
-              <div className="flex justify-between mb-4">
-                <span className="text-blue-600 font-bold">
-                  Question {currentQuestion + 1}
-                </span>
-                <span className="text-slate-400">
-                  / {assessmentQuestions.length}
-                </span>
-              </div>
-
-              <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
-                <motion.div
-                  animate={{
-                    width: `${
-                      ((currentQuestion + 1) /
-                        assessmentQuestions.length) *
-                      100
-                    }%`,
-                  }}
-                  className="h-full bg-blue-600"
-                />
-              </div>
-            </div>
-
-            <h2 className="text-2xl font-bold text-slate-900 mb-8">
+            <h2 className="text-2xl font-bold mb-8">
               {assessmentQuestions[currentQuestion].question}
             </h2>
 
             <div className="grid gap-4">
-              {assessmentQuestions[currentQuestion].options.map(
-                (option, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => selectOption(option)}
-                    className={`p-5 rounded-3xl text-left font-bold border-2 transition-all ${
-                      answers[currentQuestion] === option
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "bg-white border-slate-200 hover:border-blue-300"
-                    }`}
-                  >
-                    {option}
-                  </button>
-                )
-              )}
+              {assessmentQuestions[currentQuestion].options.map((option, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => selectOption(option)}
+                  className="p-5 rounded-3xl text-left font-bold border-2 bg-white border-slate-200 hover:border-blue-300"
+                >
+                  {option}
+                </button>
+              ))}
             </div>
           </motion.div>
         )}
@@ -204,15 +231,15 @@ export default function OnboardingPage() {
         {step === 2 && (
           <motion.div
             key="result"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="max-w-md w-full bg-white p-10 rounded-[40px] shadow-2xl text-center z-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="max-w-md w-full bg-white p-10 rounded-[40px] shadow-2xl text-center"
           >
             <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-8">
               <Activity size={48} />
             </div>
 
-            <h2 className="text-3xl font-extrabold text-slate-900 mb-4">
+            <h2 className="text-3xl font-extrabold mb-4">
               Assessment Ready
             </h2>
 
@@ -221,26 +248,28 @@ export default function OnboardingPage() {
                 Recovery Level
               </p>
               <p className="text-2xl font-black text-blue-600">
-                MODERATE RISK
+                {calculateRiskLevel().toUpperCase()}
               </p>
             </div>
 
             <div className="bg-blue-50 p-6 rounded-3xl flex items-start gap-4 text-left">
               <Sparkles className="text-blue-600 mt-1" size={24} />
               <p className="text-sm text-blue-900">
-                We've assigned you the <b>Resilience Path</b>.
+                Your personalized journey begins now.
               </p>
             </div>
 
             <button
-              onClick={handleNext}
-              className="w-full bg-blue-600 text-white py-5 rounded-3xl font-bold text-lg mt-8 hover:bg-blue-700 transition-all"
+              onClick={handleFinish}
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-5 rounded-3xl font-bold mt-8"
             >
-              Start My Journey
-              <ArrowRight className="inline ml-2" />
+              {loading ? "Setting things up..." : "Start My Journey"}
+              {!loading && <ArrowRight className="inline ml-2" />}
             </button>
           </motion.div>
         )}
+
       </AnimatePresence>
     </div>
   );

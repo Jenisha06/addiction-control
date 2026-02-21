@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { auth, db } from "../../src/lib/firebase";
+import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import {
   Smile,
   Meh,
@@ -18,7 +20,7 @@ import {
   Star,
 } from "lucide-react";
 
-/* Temporary user state (replace later with global store) */
+
 const initialUser = {
   streak: 14,
   xp: 2400,
@@ -43,19 +45,78 @@ export default function CheckInPage() {
   const [craving, setCraving] = useState(1);
   const [drank, setDrank] = useState(null);
 
-  const handleFinish = () => {
-    if (drank === false) {
-      setUser((prev) => ({
-        ...prev,
-        streak: prev.streak + 1,
-        xp: prev.xp + 100,
-        moneySaved: prev.moneySaved + 20,
-      }));
-      setStep(3);
-    } else {
-      setStep(4);
+const handleFinish = async (didDrink) => {
+  try {
+    const user = auth.currentUser;
+    if (!user) {
+      alert("User not authenticated");
+      return;
     }
-  };
+
+    const today = new Date().toISOString().split("T")[0];
+    const userRef = doc(db, "users", user.uid);
+    const logRef = doc(db, "users", user.uid, "logs", today);
+
+    const existingLog = await getDoc(logRef);
+    if (existingLog.exists()) {
+      alert("You already checked in today.");
+      return;
+    }
+
+    const userSnap = await getDoc(userRef);
+    let userData = {};
+    if (userSnap.exists()) {
+      userData = userSnap.data();
+    }
+
+    let newStreak = 0;
+    let xpGain = 0;
+    let moneyGain = 0;
+
+    const lastCheckIn = userData.lastCheckIn;
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+    if (!didDrink) {
+      if (lastCheckIn === yesterdayStr) {
+        newStreak = (userData.streak || 0) + 1;
+      } else {
+        newStreak = 1;
+      }
+
+      xpGain = 100;
+      moneyGain = 20;
+    } else {
+      newStreak = 0;
+      xpGain = 10;
+    }
+
+    await setDoc(logRef, {
+      mood,
+      craving,
+      drank: didDrink,
+      createdAt: serverTimestamp(),
+    });
+
+    await setDoc(
+      userRef,
+      {
+        streak: newStreak,
+        xp: (userData.xp || 0) + xpGain,
+        moneySaved: (userData.moneySaved || 0) + moneyGain,
+        lastCheckIn: today,
+      },
+      { merge: true }
+    );
+
+    setStep(!didDrink ? 3 : 4);
+
+  } catch (error) {
+    console.error("Check-in error:", error);
+    alert(error.message);
+  }
+};
 
   const goDashboard = () => {
     router.push("/dashboard");
@@ -164,10 +225,7 @@ export default function CheckInPage() {
 
               <div className="grid gap-4">
                 <button
-                  onClick={() => {
-                    setDrank(false);
-                    handleFinish();
-                  }}
+                 onClick={() => handleFinish(false)}
                   className="p-8 bg-emerald-100 rounded-[40px]"
                 >
                   <CheckCircle2 size={32} />
@@ -177,10 +235,7 @@ export default function CheckInPage() {
                 </button>
 
                 <button
-                  onClick={() => {
-                    setDrank(true);
-                    handleFinish();
-                  }}
+                onClick={() => handleFinish(true)}
                   className="p-8 bg-rose-100 rounded-[40px]"
                 >
                   <XCircle size={32} />
