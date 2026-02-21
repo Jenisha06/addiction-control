@@ -7,29 +7,32 @@ import {
   Zap,
   Brain,
   Wind,
-  Clock,
+  Target,
   ArrowRight,
   ChevronRight,
-  CheckCircle2,
   Sparkles,
-  Target,
+  Heart,
+  MessageCircle,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+
+
 
 const exercises = [
   {
     id: "trigger",
     icon: <Target className="text-blue-600" size={32} />,
-    title: "Identify Trigger",
-    subtitle: "Where does the urge start?",
+    title: "Smart Trigger Detective",
+    subtitle: "AI-powered trigger analysis",
     xp: 150,
     color: "bg-blue-50",
   },
   {
     id: "reframing",
     icon: <Brain className="text-emerald-600" size={32} />,
-    title: "Thought Reframing",
-    subtitle: "New perspective, new brain",
+    title: "AI Thought Transformer",
+    subtitle: "Reframe thoughts positively with AI",
     xp: 200,
     color: "bg-emerald-50",
   },
@@ -42,11 +45,11 @@ const exercises = [
     color: "bg-purple-50",
   },
   {
-    id: "delay",
-    icon: <Clock className="text-rose-600" size={32} />,
-    title: "5-Minute Delay",
-    subtitle: "Just 300 more seconds",
-    xp: 50,
+    id: "mindfulness",
+    icon: <Heart className="text-rose-600" size={32} />,
+    title: "Mindful Breathing",
+    subtitle: "Ground yourself in the present",
+    xp: 120,
     color: "bg-rose-50",
   },
 ];
@@ -55,120 +58,397 @@ export default function CBTPage() {
   const { addXP } = useApp();
   const [activeExercise, setActiveExercise] = useState(null);
   const [step, setStep] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [aiResponse, setAiResponse] = useState("");
+  const [userInput, setUserInput] = useState("");
+  const [currentQuestion, setCurrentQuestion] = useState("");
+  const [triggerQuestions, setTriggerQuestions] = useState([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState([]);
 
+  // Gemini AI API call
+async function callGeminiAPI(prompt) {
+  try {
+    const res = await fetch("/api/gemini", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt }),
+    });
+
+    const rawText = await res.text(); // 👈 KEY CHANGE
+    let data = {};
+
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      console.error("Non-JSON response from API:", rawText);
+    }
+
+    if (!res.ok) {
+      console.error("API error response:", data);
+      return data.text || "AI service error. Please try again.";
+    }
+
+    return data.text || "No response generated.";
+  } catch (err) {
+    console.error("Frontend fetch failed:", err);
+    return "Unable to reach AI service.";
+  }
+}
   const completeExercise = (xp) => {
     addXP?.(xp);
-
     toast.success(`Exercise Complete! +${xp} XP`, {
       icon: <Sparkles className="text-yellow-500" />,
     });
-
     setActiveExercise(null);
     setStep(0);
+    setAiResponse("");
+    setUserInput("");
+    setTriggerQuestions([]);
+    setCurrentQuestionIndex(0);
+    setAnswers([]);
   };
 
   /* ===========================
-     TRIGGER EXERCISE
+     SMART TRIGGER DETECTIVE (AI-POWERED)
   =========================== */
+
+  const generateTriggerQuestions = async () => {
+    const prompt = `You are an addiction counselor AI. Generate 3 multiple choice questions to help identify addiction triggers. Each question should have 4 options (A, B, C, D). Format as JSON:
+    [
+      {
+        "question": "What situation typically precedes your urges?",
+        "options": ["A) Social gatherings", "B) Work stress", "C) Being alone", "D) Relationship conflicts"]
+      }
+    ]
+    Make questions specific to addiction triggers and psychological patterns.`;
+
+    const response = await callGeminiAPI(prompt);
+    try {
+      const questions = JSON.parse(response);
+      setTriggerQuestions(questions);
+      setCurrentQuestion(questions[0].question);
+    } catch (error) {
+      // Fallback questions if JSON parsing fails
+      setTriggerQuestions([
+        {
+          question: "What situation typically triggers your urges?",
+          options: ["A) Social pressure", "B) Stress at work", "C) Being alone", "D) Seeing reminders"]
+        }
+      ]);
+      setCurrentQuestion("What situation typically triggers your urges?");
+    }
+  };
+
+  const handleAnswerSelection = async (answer) => {
+    const newAnswers = [...answers, answer];
+    setAnswers(newAnswers);
+
+    if (currentQuestionIndex < triggerQuestions.length - 1) {
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+      setCurrentQuestion(triggerQuestions[nextIndex].question);
+    } else {
+      // Analyze all answers with AI
+      const analysisPrompt = `As an addiction counselor, analyze these trigger responses and provide personalized insights in a conversational, encouraging tone (max 150 words):
+      
+      Answers: ${newAnswers.join(", ")}
+      
+      Provide: 1) Main trigger pattern identified 2) Personalized coping strategy 3) Encouraging message. Keep it warm and supportive.`;
+
+      const analysis = await callGeminiAPI(analysisPrompt);
+      setAiResponse(analysis);
+      setStep(2);
+    }
+  };
 
   if (activeExercise === "trigger") {
     return (
       <ExerciseLayout
-        title="Identify Trigger"
+        title="Smart Trigger Detective"
         onClose={() => {
           setActiveExercise(null);
           setStep(0);
+          setTriggerQuestions([]);
+          setCurrentQuestionIndex(0);
+          setAnswers([]);
         }}
       >
         <AnimatePresence mode="wait">
           {step === 0 && (
             <motion.div
-              key="q1"
+              key="start"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-8 text-center"
+            >
+              <div className="w-24 h-24 bg-blue-100 text-blue-600 rounded-[32px] flex items-center justify-center mx-auto">
+                <Target size={48} />
+              </div>
+              
+              <h2 className="text-3xl font-black text-slate-800">
+                Let's find your triggers
+              </h2>
+              
+              <p className="text-slate-600 text-lg">
+                I'll ask you a few smart questions to identify your patterns
+              </p>
+
+              <button
+                onClick={() => {
+                  generateTriggerQuestions();
+                  setStep(1);
+                }}
+                disabled={loading}
+                className="w-full bg-blue-600 text-white py-5 rounded-[32px] font-black text-lg shadow-xl shadow-blue-100 flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {loading ? <Loader2 className="animate-spin" /> : "Start Analysis"}
+                <ArrowRight />
+              </button>
+            </motion.div>
+          )}
+
+          {step === 1 && triggerQuestions.length > 0 && (
+            <motion.div
+              key="questions"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="space-y-10"
+              className="space-y-8"
             >
-              <h2 className="text-3xl font-black text-slate-800">
-                What happened just before the urge?
+              <div className="text-center">
+                <span className="text-sm text-blue-600 font-bold">
+                  Question {currentQuestionIndex + 1} of {triggerQuestions.length}
+                </span>
+              </div>
+
+              <h2 className="text-2xl font-black text-slate-800">
+                {currentQuestion}
               </h2>
 
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  "Stressful meeting",
-                  "Bored at home",
-                  "Social pressure",
-                  "Loneliness",
-                  "A specific smell",
-                  "Seeing a drink",
-                ].map((t) => (
+              <div className="space-y-4">
+                {triggerQuestions[currentQuestionIndex]?.options.map((option, index) => (
                   <button
-                    key={t}
-                    onClick={() => setStep(1)}
-                    className="p-5 bg-white border border-slate-200 rounded-3xl font-bold text-slate-700 hover:border-blue-300 hover:bg-blue-50 transition-all text-left"
+                    key={index}
+                    onClick={() => handleAnswerSelection(option)}
+                    disabled={loading}
+                    className="w-full p-4 bg-white border border-slate-200 rounded-2xl font-medium text-slate-700 hover:border-blue-300 hover:bg-blue-50 transition-all text-left disabled:opacity-50"
                   >
-                    {t}
+                    {option}
                   </button>
                 ))}
               </div>
             </motion.div>
           )}
 
-          {step === 1 && (
-            <motion.div
-              key="q2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-8"
-            >
-              <h2 className="text-3xl font-black text-slate-800">
-                What thought came to mind?
-              </h2>
-
-              <textarea
-                className="w-full h-40 bg-white border border-slate-200 rounded-[32px] p-6 text-lg font-medium focus:ring-4 focus:ring-blue-100 outline-none transition-all"
-                placeholder="e.g. I deserve one after this day..."
-              />
-
-              <button
-                onClick={() => setStep(2)}
-                className="w-full bg-blue-600 text-white py-5 rounded-[32px] font-black text-lg shadow-xl shadow-blue-100 flex items-center justify-center gap-2"
-              >
-                Analyze Thought
-                <ArrowRight />
-              </button>
-            </motion.div>
-          )}
-
           {step === 2 && (
             <motion.div
-              key="q3"
+              key="analysis"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="space-y-10 text-center"
+              className="space-y-6"
             >
-              <div className="w-24 h-24 bg-blue-100 text-blue-600 rounded-[32px] flex items-center justify-center mx-auto">
-                <Target size={48} />
+              <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto">
+                <Brain size={32} />
               </div>
 
-              <h2 className="text-3xl font-black text-slate-900">
-                TRIGGER LOGGED
+              <h2 className="text-2xl font-black text-slate-900 text-center">
+                Your Trigger Analysis
               </h2>
 
-              <p className="text-slate-500 font-medium">
-                Awareness is 50% of the battle.
-              </p>
+              <div className="bg-white p-6 rounded-[24px] border border-slate-100">
+                {loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="animate-spin text-blue-600" size={32} />
+                  </div>
+                ) : (
+                  <p className="text-slate-700 leading-relaxed">{aiResponse}</p>
+                )}
+              </div>
 
               <button
                 onClick={() => completeExercise(150)}
-                className="w-full bg-blue-600 text-white py-5 rounded-[32px] font-black text-lg shadow-xl shadow-blue-100"
+                className="w-full bg-blue-600 text-white py-4 rounded-[24px] font-bold text-lg"
               >
-                Claim 150 XP
+                Complete Analysis +150 XP
               </button>
             </motion.div>
           )}
         </AnimatePresence>
+      </ExerciseLayout>
+    );
+  }
+
+  /* ===========================
+     AI THOUGHT TRANSFORMER
+  =========================== */
+
+  if (activeExercise === "reframing") {
+    return (
+      <ExerciseLayout
+        title="AI Thought Transformer"
+        onClose={() => {
+          setActiveExercise(null);
+          setStep(0);
+          setAiResponse("");
+          setUserInput("");
+        }}
+      >
+        <AnimatePresence mode="wait">
+          {step === 0 && (
+            <motion.div
+              key="input"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-8"
+            >
+              <div className="text-center">
+                <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-[24px] flex items-center justify-center mx-auto mb-4">
+                  <MessageCircle size={40} />
+                </div>
+                <h2 className="text-3xl font-black text-slate-800">
+                  What's on your mind?
+                </h2>
+                <p className="text-slate-500 mt-2">
+                  Share a negative thought, and I'll help you see it differently
+                </p>
+              </div>
+
+              <textarea
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                className="w-full h-40 bg-white border-2 border-slate-200 rounded-[24px] p-6 text-lg font-medium focus:ring-4 focus:ring-emerald-100 focus:border-emerald-300 outline-none transition-all resize-none"
+                placeholder="e.g. I'm worthless and will never overcome this addiction..."
+              />
+
+              <button
+                onClick={async () => {
+                  if (!userInput.trim()) return;
+                  
+                  const reframePrompt = `You are a compassionate therapist. Reframe this negative thought in a positive, realistic way. Be conversational, warm, and encouraging. Keep it under 100 words:
+
+                  Negative thought: "${userInput}"
+
+                  Provide a gentle reframe that acknowledges their struggle but offers hope and a healthier perspective. Use "you" to speak directly to them.`;
+
+                  const reframe = await callGeminiAPI(reframePrompt);
+                  setAiResponse(reframe);
+                  setStep(1);
+                }}
+                disabled={loading || !userInput.trim()}
+                className="w-full bg-emerald-600 text-white py-5 rounded-[24px] font-black text-lg shadow-xl shadow-emerald-100 flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {loading ? <Loader2 className="animate-spin" /> : "Transform Thought"}
+                <Sparkles />
+              </button>
+            </motion.div>
+          )}
+
+          {step === 1 && (
+            <motion.div
+              key="reframe"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="space-y-8"
+            >
+              <div className="text-center">
+                <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-[24px] flex items-center justify-center mx-auto mb-4">
+                  <Sparkles size={40} />
+                </div>
+                <h2 className="text-2xl font-black text-slate-900">
+                  New Perspective ✨
+                </h2>
+              </div>
+
+              <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-6 rounded-[24px] border border-emerald-100">
+                {loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="animate-spin text-emerald-600" size={32} />
+                  </div>
+                ) : (
+                  <p className="text-slate-700 leading-relaxed text-lg italic">
+                    "{aiResponse}"
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <button
+                  onClick={() => {
+                    setStep(0);
+                    setUserInput("");
+                    setAiResponse("");
+                  }}
+                  className="w-full bg-white border-2 border-emerald-200 text-emerald-700 py-4 rounded-[24px] font-bold"
+                >
+                  Transform Another Thought
+                </button>
+                
+                <button
+                  onClick={() => completeExercise(200)}
+                  className="w-full bg-emerald-600 text-white py-4 rounded-[24px] font-bold text-lg"
+                >
+                  Complete Session +200 XP
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </ExerciseLayout>
+    );
+  }
+
+  /* ===========================
+     MINDFUL BREATHING (NEW 4TH FEATURE)
+  =========================== */
+
+  if (activeExercise === "mindfulness") {
+    return (
+      <ExerciseLayout
+        title="Mindful Breathing"
+        onClose={() => {
+          setActiveExercise(null);
+          setStep(0);
+        }}
+      >
+        <div className="space-y-8 text-center">
+          <div className="w-24 h-24 bg-rose-100 text-rose-600 rounded-[32px] flex items-center justify-center mx-auto">
+            <Heart size={48} />
+          </div>
+          
+          <h2 className="text-3xl font-black text-slate-800">
+            Breathe & Reset
+          </h2>
+          
+          <p className="text-slate-600 text-lg">
+            4-7-8 breathing technique to calm your mind and body
+          </p>
+
+          <div className="bg-gradient-to-br from-rose-50 to-pink-50 p-8 rounded-[32px] border border-rose-100">
+            <div className="space-y-4 text-left">
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 bg-rose-600 text-white rounded-full flex items-center justify-center font-bold text-sm">1</span>
+                <span>Inhale for 4 counts</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 bg-rose-600 text-white rounded-full flex items-center justify-center font-bold text-sm">2</span>
+                <span>Hold for 7 counts</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 bg-rose-600 text-white rounded-full flex items-center justify-center font-bold text-sm">3</span>
+                <span>Exhale for 8 counts</span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => completeExercise(120)}
+            className="w-full bg-rose-600 text-white py-5 rounded-[32px] font-black text-lg shadow-xl shadow-rose-100"
+          >
+            I've Completed 3 Cycles +120 XP
+          </button>
+        </div>
       </ExerciseLayout>
     );
   }
@@ -182,9 +462,9 @@ export default function CBTPage() {
       <header className="flex justify-between items-center mb-10">
         <div>
           <h1 className="text-3xl font-black text-slate-900">
-            Brain <span className="text-emerald-600">Gym</span>
+            AI Brain <span className="text-emerald-600">Gym</span>
           </h1>
-          <p className="text-slate-500">Strengthen your resilience</p>
+          <p className="text-slate-500">AI-powered addiction recovery</p>
         </div>
 
         <div className="bg-emerald-100 p-3 rounded-2xl flex items-center gap-2">
@@ -226,10 +506,10 @@ export default function CBTPage() {
       <div className="mt-8 bg-white p-8 rounded-[40px] shadow-sm border border-slate-100">
         <h3 className="font-black text-slate-900 mb-4 flex items-center gap-2">
           <Zap className="text-yellow-500" size={20} fill="currentColor" />
-          Pro Tip
+          AI Pro Tip
         </h3>
         <p className="text-slate-500 text-sm italic">
-          If you delay an urge for 15 minutes, intensity drops dramatically.
+          The AI learns your patterns and provides personalized strategies that get better over time.
         </p>
       </div>
     </div>
