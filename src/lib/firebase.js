@@ -3,12 +3,12 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDyVNtI-fahkRQ_qx0SI5sgJHn7vUtPvM4",
-  authDomain: "addiction-control-de7c2.firebaseapp.com",
-  projectId: "addiction-control-de7c2",
-  storageBucket: "addiction-control-de7c2.firebasestorage.app",
-  messagingSenderId: "332515352902",
-  appId: "1:332515352902:web:011006fd28f59e08680547",
+apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+ authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
