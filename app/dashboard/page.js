@@ -26,50 +26,63 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import { auth, db } from "../../src/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  orderBy,
+  getDocs,
+} from "firebase/firestore";
 
-const mockChartData = [
-  { name: "Mon", mood: 2, cravings: 4 },
-  { name: "Tue", mood: 3, cravings: 3 },
-  { name: "Wed", mood: 2, cravings: 5 },
-  { name: "Thu", mood: 4, cravings: 2 },
-  { name: "Fri", mood: 5, cravings: 1 },
-  { name: "Sat", mood: 4, cravings: 2 },
-  { name: "Sun", mood: 5, cravings: 1 },
-];
+import { auth, db } from "../../src/lib/firebase";
 
 export default function DashboardPage() {
   const router = useRouter();
 
   const [userData, setUserData] = useState(null);
+  const [checkins, setCheckins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0 });
 
-  // 🔐 Load user safely
+  // 🔐 Load User + Checkins
   useEffect(() => {
-    const loadUser = async () => {
+    const loadData = async () => {
       try {
-        await new Promise((r) => setTimeout(r, 300));
         const user = auth.currentUser;
-
         if (!user) {
           setLoading(false);
           return;
         }
 
-        const snap = await getDoc(doc(db, "users", user.uid));
-
-        if (snap.exists()) {
-          setUserData(snap.data());
+        // 🔹 Load profile
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        if (userSnap.exists()) {
+          setUserData(userSnap.data());
         }
+
+        // 🔹 Load checkins
+        const q = query(
+          collection(db, "users", user.uid, "checkins"),
+          orderBy("date", "asc")
+        );
+
+        const snapshot = await getDocs(q);
+
+        const formatted = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setCheckins(formatted);
       } catch (err) {
         console.error("Dashboard load error:", err);
       }
+
       setLoading(false);
     };
 
-    loadUser();
+    loadData();
   }, []);
 
   // ⏳ Sobriety timer
@@ -98,13 +111,68 @@ export default function DashboardPage() {
     const nextLevelXP = userData.level * 1000;
     const currentLevelXP = (userData.level - 1) * 1000;
 
-    const progress =
-      ((userData.xp - currentLevelXP) /
-        (nextLevelXP - currentLevelXP)) *
-      100;
-
-    return Math.min(100, Math.max(0, progress));
+    return Math.min(
+      100,
+      Math.max(
+        0,
+        ((userData.xp - currentLevelXP) /
+          (nextLevelXP - currentLevelXP)) *
+          100
+      )
+    );
   }, [userData]);
+
+  // 🔥 Real consecutive streak calculation
+  const streak = useMemo(() => {
+    if (!checkins.length) return 0;
+
+    const sorted = [...checkins].sort(
+      (a, b) => b.date.toDate() - a.date.toDate()
+    );
+
+    let count = 0;
+    let current = new Date();
+
+    for (let checkin of sorted) {
+      const checkDate = checkin.date.toDate();
+      const diff =
+        Math.floor(
+          (current - checkDate) / (1000 * 60 * 60 * 24)
+        );
+
+      if (diff === 0 || diff === 1) {
+        count++;
+        current = checkDate;
+      } else {
+        break;
+      }
+    }
+
+    return count;
+  }, [checkins]);
+
+  // 💰 Auto money saved
+  const moneySaved = useMemo(() => {
+    if (!userData?.sobrietyDate || !userData?.drinkCostPerDay)
+      return 0;
+
+    const days =
+      (Date.now() - new Date(userData.sobrietyDate)) /
+      (1000 * 60 * 60 * 24);
+
+    return Math.floor(days) * userData.drinkCostPerDay;
+  }, [userData]);
+
+  // 📊 Chart data from checkins
+  const chartData = useMemo(() => {
+    return checkins.map((c) => ({
+      name: c.date.toDate().toLocaleDateString("en-US", {
+        weekday: "short",
+      }),
+      mood: c.mood,
+      cravings: c.cravings,
+    }));
+  }, [checkins]);
 
   if (loading)
     return <div className="p-10 text-center font-bold">Loading...</div>;
@@ -115,6 +183,8 @@ export default function DashboardPage() {
         No user data found.
       </div>
     );
+
+    
 
   return (
     <motion.div
@@ -156,7 +226,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex gap-3">
-          <StatBubble icon={<Flame size={16} />} value={`${userData.streak ?? 0}d`} />
+          <StatBubble icon={<Flame size={16} />} value={`${streak}d`} />
           <StatBubble icon={<Shield size={16} />} value={userData.shieldCount ?? 0} />
         </div>
       </header>
@@ -199,15 +269,15 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <StatMiniCard label="Saved" value={`$${userData.moneySaved ?? 0}`} icon={<DollarSign size={18} />} />
-          <StatMiniCard label="Calories" value={userData.caloriesAvoided ?? 0} icon={<Zap size={18} />} />
-          <StatMiniCard label="Health" value="84%" icon={<Activity size={18} />} />
-        </div>
+     <div className="grid grid-cols-3 gap-4 mb-6">
+  <StatMiniCard label="Saved" value={`$${moneySaved}`} icon={<DollarSign size={18} />} />
+  <StatMiniCard label="Calories" value={userData.caloriesAvoided ?? 0} icon={<Zap size={18} />} />
+  <StatMiniCard label="Health" value="84%" icon={<Activity size={18} />} />
+</div>
 
         <div className="bg-white p-6 rounded-3xl shadow-sm border h-48">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={mockChartData}>
+            <AreaChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <Tooltip />
               <Area type="monotone" dataKey="mood" stroke="#3B82F6" fill="#BFDBFE" />

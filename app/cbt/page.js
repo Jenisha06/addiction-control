@@ -22,6 +22,7 @@ import { toast } from "sonner";
 const exercises = [
   {
     id: "trigger",
+     minLevel: 1,
     icon: <Target className="text-blue-600" size={32} />,
     title: "Smart Trigger Detective",
     subtitle: "AI-powered trigger analysis",
@@ -30,6 +31,7 @@ const exercises = [
   },
   {
     id: "reframing",
+     minLevel: 2,
     icon: <Brain className="text-emerald-600" size={32} />,
     title: "AI Thought Transformer",
     subtitle: "Reframe thoughts positively with AI",
@@ -38,6 +40,7 @@ const exercises = [
   },
   {
     id: "surfing",
+     minLevel: 3,
     icon: <Wind className="text-purple-600" size={32} />,
     title: "Urge Surfing",
     subtitle: "Ride the wave without drowning",
@@ -46,6 +49,7 @@ const exercises = [
   },
   {
     id: "mindfulness",
+     minLevel: 1,
     icon: <Heart className="text-rose-600" size={32} />,
     title: "Mindful Breathing",
     subtitle: "Ground yourself in the present",
@@ -55,7 +59,7 @@ const exercises = [
 ];
 
 export default function CBTPage() {
-  const { addXP } = useApp();
+  const { addXP , userData} = useApp();
   const [activeExercise, setActiveExercise] = useState(null);
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -95,8 +99,8 @@ async function callGeminiAPI(prompt) {
     return "Unable to reach AI service.";
   }
 }
-  const completeExercise = (xp) => {
-    addXP?.(xp);
+  const completeExercise = (xp, exerciseId) => {
+    addXP?.(xp, exerciseId);
     toast.success(`Exercise Complete! +${xp} XP`, {
       icon: <Sparkles className="text-yellow-500" />,
     });
@@ -114,6 +118,7 @@ async function callGeminiAPI(prompt) {
   =========================== */
 
   const generateTriggerQuestions = async () => {
+    setLoading(true);
     const prompt = `You are an addiction counselor AI. Generate 3 multiple choice questions to help identify addiction triggers. Each question should have 4 options (A, B, C, D). Format as JSON:
     [
       {
@@ -138,9 +143,11 @@ async function callGeminiAPI(prompt) {
       ]);
       setCurrentQuestion("What situation typically triggers your urges?");
     }
+    setLoading(false);
   };
 
   const handleAnswerSelection = async (answer) => {
+    setLoading(true);
     const newAnswers = [...answers, answer];
     setAnswers(newAnswers);
 
@@ -160,6 +167,7 @@ async function callGeminiAPI(prompt) {
       setAiResponse(analysis);
       setStep(2);
     }
+    setLoading(false);
   };
 
   if (activeExercise === "trigger") {
@@ -268,7 +276,7 @@ async function callGeminiAPI(prompt) {
               </div>
 
               <button
-                onClick={() => completeExercise(150)}
+                onClick={() => completeExercise(150 , "trigger")}
                 className="w-full bg-blue-600 text-white py-4 rounded-[24px] font-bold text-lg"
               >
                 Complete Analysis +150 XP
@@ -386,7 +394,7 @@ async function callGeminiAPI(prompt) {
                 </button>
                 
                 <button
-                  onClick={() => completeExercise(200)}
+                  onClick={() => completeExercise(200 , "reframing")}
                   className="w-full bg-emerald-600 text-white py-4 rounded-[24px] font-bold text-lg"
                 >
                   Complete Session +200 XP
@@ -443,7 +451,7 @@ async function callGeminiAPI(prompt) {
           </div>
 
           <button
-            onClick={() => completeExercise(120)}
+            onClick={() => completeExercise(120 , "mindfulness")}
             className="w-full bg-rose-600 text-white py-5 rounded-[32px] font-black text-lg shadow-xl shadow-rose-100"
           >
             I've Completed 3 Cycles +120 XP
@@ -470,37 +478,52 @@ async function callGeminiAPI(prompt) {
         <div className="bg-emerald-100 p-3 rounded-2xl flex items-center gap-2">
           <Brain className="text-emerald-600" size={20} />
           <span className="font-black text-emerald-800 text-xs uppercase">
-            Level 3 Expert
+            Level {userData?.level ?? 1}
           </span>
         </div>
       </header>
 
       <div className="grid gap-4">
-        {exercises.map((ex) => (
-          <button
-            key={ex.id}
-            onClick={() => setActiveExercise(ex.id)}
-            className={`${ex.color} p-6 rounded-[32px] text-left hover:scale-[1.02] active:scale-95 transition-all border border-white/50 flex items-center gap-6 shadow-sm`}
-          >
-            <div className="bg-white p-4 rounded-2xl">{ex.icon}</div>
+{exercises.map((ex) => {
+  const locked = (userData?.level ?? 1) < ex.minLevel;
 
-            <div className="flex-1">
-              <h3 className="font-bold text-lg text-slate-900">
-                {ex.title}
-              </h3>
-              <p className="text-xs text-slate-500">
-                {ex.subtitle}
-              </p>
-            </div>
+  return (
+    <button
+      key={ex.id}
+      onClick={() => !locked && setActiveExercise(ex.id)}
+      disabled={locked}
+      className={`${ex.color} p-6 rounded-[32px] text-left transition-all border border-white/50 flex items-center gap-6 shadow-sm
+        ${locked ? "opacity-50 cursor-not-allowed" : "hover:scale-[1.02] active:scale-95"}`}
+    >
+      <div className="bg-white p-4 rounded-2xl relative">
+        {ex.icon}
+        {locked && (
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[8px] px-2 py-1 rounded-full font-bold">
+            L{ex.minLevel}
+          </span>
+        )}
+      </div>
 
-            <div className="flex flex-col items-end gap-1">
-              <span className="bg-white/80 px-2 py-1 rounded-lg text-[10px] font-black text-slate-700">
-                +{ex.xp} XP
-              </span>
-              <ChevronRight className="text-slate-400" />
-            </div>
-          </button>
-        ))}
+      <div className="flex-1">
+        <h3 className="font-bold text-lg text-slate-900">
+          {ex.title}
+        </h3>
+        <p className="text-xs text-slate-500">
+          {locked
+            ? `Unlock at Level ${ex.minLevel}`
+            : ex.subtitle}
+        </p>
+      </div>
+
+      <div className="flex flex-col items-end gap-1">
+        <span className="bg-white/80 px-2 py-1 rounded-lg text-[10px] font-black text-slate-700">
+          +{ex.xp} XP
+        </span>
+        {!locked && <ChevronRight className="text-slate-400" />}
+      </div>
+    </button>
+  );
+})}
       </div>
 
       <div className="mt-8 bg-white p-8 rounded-[40px] shadow-sm border border-slate-100">
