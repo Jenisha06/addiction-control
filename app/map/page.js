@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import confetti from "canvas-confetti";
-
+import BottomNav from "../components/BottomNav";
 // ─── Level Definitions ──────────────────────────────────────────────────────
 
 const levels = [
@@ -719,6 +719,7 @@ export default function RecoveryMapPage() {
           onComplete={handleChallengeComplete}
         />
       )}
+    <BottomNav/>
     </div>
   );
 }

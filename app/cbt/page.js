@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-
+import BottomNav from "../components/BottomNav";
 
 const exercises = [
   {
@@ -543,6 +543,7 @@ async function callGeminiAPI(prompt) {
           The AI learns your patterns and provides personalized strategies that get better over time.
         </p>
       </div>
+      <BottomNav/>
     </div>
   );
 }

@@ -11,7 +11,7 @@ import {
   Search,
   Smile,
 } from "lucide-react";
-
+import BottomNav from "../components/BottomNav";
 const mockPosts = [
   {
     id: 1,
@@ -208,6 +208,7 @@ export default function CommunityPage() {
           Join Beta
         </button>
       </div>
+      <BottomNav/>
     </div>
   );
 }
