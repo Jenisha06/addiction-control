@@ -47,6 +47,13 @@ const exercises = [
     xp: 100,
     color: "bg-purple-50",
   },
+  id: "delay",
+  icon: <Zap className="text-indigo-600" size={32} />,
+  title: "Craving Delay Challenge",
+  subtitle: "Wait it out. You are stronger than the urge.",
+  xp: 130,
+  color: "bg-indigo-50",
+},
   {
     id: "mindfulness",
      minLevel: 1,

@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { auth, db } from "../../src/lib/firebase";
-import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import {
   Smile,
   Meh,
@@ -13,20 +18,8 @@ import {
   Skull,
   CheckCircle2,
   XCircle,
-  Zap,
-  ArrowRight,
   Flame,
-  TrendingUp,
-  Star,
 } from "lucide-react";
-
-
-const initialUser = {
-  streak: 14,
-  xp: 2400,
-  moneySaved: 320,
-  shieldCount: 1,
-};
 
 const emotions = [
   { icon: <Smile className="text-emerald-500" size={40} />, label: "Great", value: 5 },
@@ -38,58 +31,68 @@ const emotions = [
 
 export default function CheckInPage() {
   const router = useRouter();
-  const [user, setUser] = useState(initialUser);
+
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [name, setName] = useState("");
 
   const [step, setStep] = useState(0);
   const [mood, setMood] = useState(null);
   const [craving, setCraving] = useState(1);
-  const [drank, setDrank] = useState(null);
 
-const handleFinish = async (didDrink) => {
-  try {
-    const user = auth.currentUser;
-    if (!user) {
-      alert("User not authenticated");
-      return;
-    }
-
-    const today = new Date().toISOString().split("T")[0];
-    const userRef = doc(db, "users", user.uid);
-    const logRef = doc(db, "users", user.uid, "logs", today);
-
-    const existingLog = await getDoc(logRef);
-    if (existingLog.exists()) {
-      alert("You already checked in today.");
-      return;
-    }
-
-    const userSnap = await getDoc(userRef);
-    let userData = {};
-    if (userSnap.exists()) {
-      userData = userSnap.data();
-    }
-
-    let newStreak = 0;
-    let xpGain = 0;
-    let moneyGain = 0;
-
-    const lastCheckIn = userData.lastCheckIn;
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split("T")[0];
-
-    if (!didDrink) {
-      if (lastCheckIn === yesterdayStr) {
-        newStreak = (userData.streak || 0) + 1;
-      } else {
-        newStreak = 1;
+  /* 🔹 LOAD USER SAFELY */
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        setLoadingUser(false);
+        return;
       }
 
-      xpGain = 100;
-      moneyGain = 20;
-    } else {
-      newStreak = 0;
-      xpGain = 10;
+      const snap = await getDoc(doc(db, "users", user.uid));
+
+      if (snap.exists() && snap.data().name) {
+        setName(snap.data().name);
+        setStep(0);
+      } else {
+        setStep(-1); // ask name first
+      }
+
+      setLoadingUser(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  /* 🔹 SAVE NAME */
+  const saveName = async () => {
+    if (!name.trim()) return alert("Enter your name");
+
+    const user = auth.currentUser;
+    if (!user) return;
+
+    await setDoc(
+      doc(db, "users", user.uid),
+      {
+        name,
+        createdAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    setStep(0);
+  };
+
+  /* 🔹 CHECK-IN FINISH */
+  const handleFinish = async (didDrink) => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const today = new Date().toISOString().split("T")[0];
+    const logRef = doc(db, "users", user.uid, "logs", today);
+
+    const existing = await getDoc(logRef);
+    if (existing.exists()) {
+      alert("Already checked in today");
+      return;
     }
 
     await setDoc(logRef, {
@@ -99,202 +102,136 @@ const handleFinish = async (didDrink) => {
       createdAt: serverTimestamp(),
     });
 
-    await setDoc(
-      userRef,
-      {
-        streak: newStreak,
-        xp: (userData.xp || 0) + xpGain,
-        moneySaved: (userData.moneySaved || 0) + moneyGain,
-        lastCheckIn: today,
-      },
-      { merge: true }
-    );
-
-    setStep(!didDrink ? 3 : 4);
-
-  } catch (error) {
-    console.error("Check-in error:", error);
-    alert(error.message);
-  }
-};
-
-  const goDashboard = () => {
-    router.push("/dashboard");
+    setStep(didDrink ? 4 : 3);
   };
 
+  if (loadingUser) return null;
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col p-6 max-w-lg mx-auto overflow-hidden">
-      {/* HEADER */}
-      <header className="py-8 flex justify-between items-center">
-        <h1 className="text-2xl font-black text-slate-900">
-          Daily <span className="text-blue-600">Check-In</span>
-        </h1>
+    <div className="min-h-screen bg-slate-50 flex flex-col p-6 max-w-lg mx-auto">
+      <AnimatePresence mode="wait">
 
-        <div className="h-2 w-32 bg-slate-200 rounded-full overflow-hidden">
+        {/* STEP -1 : NAME */}
+        {step === -1 && (
           <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${(step / 3) * 100}%` }}
-            className="h-full bg-blue-600"
-          />
-        </div>
-      </header>
+            key="name"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6 text-center"
+          >
+            <h2 className="text-3xl font-black">What should we call you?</h2>
 
-      <div className="flex-1 flex flex-col justify-center">
-        <AnimatePresence mode="wait">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+              className="w-full p-4 rounded-xl border"
+            />
 
-          {/* STEP 0 — Mood */}
-          {step === 0 && (
-            <motion.div
-              key="mood"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-12 text-center"
+            <button
+              onClick={saveName}
+              className="w-full bg-blue-600 text-white py-4 rounded-xl font-black"
             >
-              <h2 className="text-3xl font-black text-slate-800">
-                How are you feeling today?
-              </h2>
+              Continue
+            </button>
+          </motion.div>
+        )}
 
-              <div className="grid grid-cols-5 gap-2">
-                {emotions.map((e, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setMood(e.value);
-                      setStep(1);
-                    }}
-                    className="group space-y-3"
-                  >
-                    <div className="bg-white p-4 rounded-3xl shadow-sm border group-hover:scale-110 transition-all">
-                      {e.icon}
-                    </div>
-                    <p className="text-[10px] font-black uppercase text-slate-400 group-hover:text-blue-600">
-                      {e.label}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
+        {/* STEP 0 : MOOD */}
+        {step === 0 && (
+          <motion.div key="mood" className="text-center space-y-8">
+            <h2 className="text-3xl font-black">
+              Hi {name} 👋 How are you feeling?
+            </h2>
 
-          {/* STEP 1 — Craving */}
-          {step === 1 && (
-            <motion.div
-              key="craving"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-12 text-center"
-            >
-              <h2 className="text-3xl font-black text-slate-800">
-                Cravings intensity?
-              </h2>
-
-              <input
-                type="range"
-                min="1"
-                max="5"
-                value={craving}
-                onChange={(e) =>
-                  setCraving(parseInt(e.target.value))
-                }
-                className="w-full h-3 bg-slate-200 rounded-full accent-blue-600"
-              />
-
-              <button
-                onClick={() => setStep(2)}
-                className="w-full bg-blue-600 text-white py-5 rounded-[32px] font-black text-lg mt-12"
-              >
-                Next Step
-              </button>
-            </motion.div>
-          )}
-
-          {/* STEP 2 — Drank */}
-          {step === 2 && (
-            <motion.div
-              key="drank"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-12 text-center"
-            >
-              <h2 className="text-3xl font-black text-slate-800">
-                Did you drink today?
-              </h2>
-
-              <div className="grid gap-4">
+            <div className="grid grid-cols-5 gap-2">
+              {emotions.map((e, i) => (
                 <button
-                 onClick={() => handleFinish(false)}
-                  className="p-8 bg-emerald-100 rounded-[40px]"
+                  key={i}
+                  onClick={() => {
+                    setMood(e.value);
+                    setStep(1);
+                  }}
                 >
-                  <CheckCircle2 size={32} />
-                  <p className="text-3xl font-black text-emerald-700">
-                    NO
-                  </p>
+                  {e.icon}
                 </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
-                <button
-                onClick={() => handleFinish(true)}
-                  className="p-8 bg-rose-100 rounded-[40px]"
-                >
-                  <XCircle size={32} />
-                  <p className="text-3xl font-black text-rose-700">
-                    YES
-                  </p>
-                </button>
-              </div>
-            </motion.div>
-          )}
+        {/* STEP 1 : CRAVING */}
+        {step === 1 && (
+          <motion.div key="craving" className="space-y-6 text-center">
+            <h2 className="text-3xl font-black">Craving level?</h2>
 
-          {/* STEP 3 — Success */}
-          {step === 3 && (
-            <motion.div
-              key="success"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="text-center space-y-10"
+            <input
+              type="range"
+              min="1"
+              max="5"
+              value={craving}
+              onChange={(e) => setCraving(Number(e.target.value))}
+              className="w-full"
+            />
+
+            <button
+              onClick={() => setStep(2)}
+              className="w-full bg-blue-600 text-white py-4 rounded-xl font-black"
             >
-              <div className="w-32 h-32 bg-emerald-100 text-emerald-600 rounded-[48px] flex items-center justify-center mx-auto">
-                <Flame size={64} />
-              </div>
+              Next
+            </button>
+          </motion.div>
+        )}
 
-              <h2 className="text-4xl font-black text-slate-900">
-                +100 XP Earned!
-              </h2>
+        {/* STEP 2 : DRINK */}
+        {step === 2 && (
+          <motion.div key="drink" className="space-y-6 text-center">
+            <h2 className="text-3xl font-black">Did you drink today?</h2>
 
-              <button
-                onClick={goDashboard}
-                className="w-full bg-slate-900 text-white py-5 rounded-[32px] font-black text-lg"
-              >
-                Back to Dashboard
-              </button>
-            </motion.div>
-          )}
-
-          {/* STEP 4 — Reflection */}
-          {step === 4 && (
-            <motion.div
-              key="reflection"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="space-y-8 text-center"
+            <button
+              onClick={() => handleFinish(false)}
+              className="w-full bg-emerald-200 py-6 rounded-xl"
             >
-              <h2 className="text-3xl font-black text-slate-800">
-                It's okay. Reflect and move forward.
-              </h2>
+              <CheckCircle2 size={32} /> NO
+            </button>
 
-              <button
-                onClick={goDashboard}
-                className="w-full border-2 border-slate-200 py-4 rounded-3xl font-black"
-              >
-                Save & Move On
-              </button>
-            </motion.div>
-          )}
+            <button
+              onClick={() => handleFinish(true)}
+              className="w-full bg-rose-200 py-6 rounded-xl"
+            >
+              <XCircle size={32} /> YES
+            </button>
+          </motion.div>
+        )}
 
-        </AnimatePresence>
-      </div>
+        {/* STEP 3 : SUCCESS */}
+        {step === 3 && (
+          <motion.div key="success" className="text-center space-y-6">
+            <Flame size={64} className="mx-auto text-emerald-500" />
+            <h2 className="text-4xl font-black">Great job!</h2>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="w-full bg-black text-white py-4 rounded-xl"
+            >
+              Dashboard
+            </button>
+          </motion.div>
+        )}
+
+        {/* STEP 4 : REFLECT */}
+        {step === 4 && (
+          <motion.div key="reflect" className="text-center space-y-6">
+            <h2 className="text-3xl font-black">Tomorrow is a new day</h2>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="w-full border py-4 rounded-xl"
+            >
+              Continue
+            </button>
+          </motion.div>
+        )}
+
+      </AnimatePresence>
     </div>
   );
 }
