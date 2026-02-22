@@ -1,5 +1,5 @@
 "use client";
-
+import FloatingChatbot from "../components/FloatingChatbot";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "@/context/AppContext";
@@ -589,5 +589,6 @@ function XIcon() {
       <line x1="18" y1="6" x2="6" y2="18" />
       <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
+    
   );
 }
