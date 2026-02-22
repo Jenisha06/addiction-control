@@ -47,6 +47,7 @@ const exercises = [
     xp: 100,
     color: "bg-purple-50",
   },
+  {
   id: "delay",
   icon: <Zap className="text-indigo-600" size={32} />,
   title: "Craving Delay Challenge",
