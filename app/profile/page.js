@@ -29,7 +29,7 @@ const T = {
   btnShadow:  "0 3px 0 #6a4820, 0 4px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,230,160,0.4)",
 };
 
-// ─── Avatars & Outfits & Poses (UNCHANGED DATA) ───────────────────────────────
+// ─── Avatars & Outfits & Poses ────────────────────────────────────────────────
 const AVATARS = [
   { id:"aurora",skin:"#F4C899",skinShade:"#E8A870",skinLight:"#FDE8CC",hair:"#1C1C2E",hairHigh:"#2d2d45",eye:"#5B8DD9",lip:"#E8698A",blush:"#F4A5B0",brow:"#1C1C2E",lash:"#0d0d1a",hairStyle:"long",     name:"Aurora",gradient:["#667eea","#a78bfa"],bg:"#EEF2FF" },
   { id:"nova",  skin:"#C8825A",skinShade:"#A0623E",skinLight:"#E0A07A",hair:"#0d0800",hairHigh:"#1a0f00",eye:"#8B6914",lip:"#B85C38",blush:"#C47B5A",brow:"#0d0800",lash:"#000000",hairStyle:"bun",      name:"Nova",  gradient:["#f093fb","#f5576c"],bg:"#FFF0F3" },
@@ -78,7 +78,324 @@ const RARITY_CFG = {
   legendary: { color:"rgba(220,100,80,0.8)",  glow:"0 0 24px rgba(220,100,80,0.4)",         label:"Legendary"},
 };
 
-// ─── Avatar SVG (UNCHANGED) ───────────────────────────────────────────────────
+// ─── Tree Growth Logic ────────────────────────────────────────────────────────
+// plantDays stored on users/{uid} doc, incremented +1 each sober checkin
+// Stage thresholds (cumulative sober days):
+const STAGE_THRESHOLDS = [0, 1, 3, 6, 10, 15, 21, 30];
+const STAGE_NAMES = ["Seed","Sprout","Seedling","Sapling","Young Tree","Grove Tree","Fruiting Tree","Ancient Grove"];
+const STAGE_DESCS = [
+  "Complete your first sober day to plant your seed 🌰",
+  "A tiny sprout breaks through the soil...",
+  "Roots deepen, leaves begin to unfurl",
+  "Growing strong, reaching toward the light",
+  "A young tree stands proud in your grove",
+  "Branches spread wide — you're thriving",
+  "Life blooms — your first fruits appear! 🍎",
+  "A legendary ancient grove. A new seed awaits... ✨",
+];
+
+function getPlantStage(plantDays) {
+  if (plantDays === 0) return 0;
+  if (plantDays <= 2)  return 1;
+  if (plantDays <= 5)  return 2;
+  if (plantDays <= 9)  return 3;
+  if (plantDays <= 14) return 4;
+  if (plantDays <= 20) return 5;
+  if (plantDays <= 29) return 6;
+  return 7;
+}
+
+function getProgressPct(plantDays, stage) {
+  if (stage >= 7) return 100;
+  const curr = STAGE_THRESHOLDS[stage];
+  const next = STAGE_THRESHOLDS[stage + 1];
+  return Math.min(100, Math.round(((plantDays - curr) / (next - curr)) * 100));
+}
+
+// ─── Tree SVG Stages ──────────────────────────────────────────────────────────
+function TreeSVG({ stage, frozen }) {
+  const wt = { duration: 3.5, repeat: Infinity, ease: "easeInOut" };
+
+  // Stage 0 — Seed
+  if (stage === 0) return (
+    <g>
+      <ellipse cx="100" cy="178" rx="72" ry="11" fill="#3d1e08" opacity="0.8"/>
+      <motion.ellipse cx="100" cy="171" rx="11" ry="8" fill="#8B5E2A"
+        animate={{ scale: [1, 1.08, 1] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+        style={{ transformOrigin: "100px 171px" }}
+      />
+      <ellipse cx="98" cy="168" rx="5" ry="3" fill="#c8a060" opacity="0.45"/>
+    </g>
+  );
+
+  // Stage 1 — Sprout
+  if (stage === 1) return (
+    <g>
+      <ellipse cx="100" cy="178" rx="72" ry="11" fill="#3d1e08" opacity="0.8"/>
+      <rect x="98" y="148" width="4" height="30" rx="2" fill="#5a8a30"/>
+      <motion.ellipse cx="87" cy="153" rx="14" ry="8" fill="#6aab40" transform="rotate(-30,87,153)"
+        animate={{ rotate: [-30,-25,-30] }} transition={wt} style={{ transformOrigin: "100px 157px" }}
+      />
+      <motion.ellipse cx="113" cy="153" rx="14" ry="8" fill="#7abc50" transform="rotate(30,113,153)"
+        animate={{ rotate: [30,25,30] }} transition={{ ...wt, delay: 0.4 }} style={{ transformOrigin: "100px 157px" }}
+      />
+    </g>
+  );
+
+  // Stage 2 — Seedling
+  if (stage === 2) return (
+    <g>
+      <ellipse cx="100" cy="178" rx="72" ry="11" fill="#3d1e08" opacity="0.8"/>
+      <rect x="97" y="118" width="6" height="60" rx="3" fill="#4a7a28"/>
+      <motion.ellipse cx="83" cy="158" rx="18" ry="9" fill="#5a9a30" transform="rotate(-25,83,158)"
+        animate={{ rotate: [-25,-20,-25] }} transition={wt} style={{ transformOrigin: "100px 163px" }}
+      />
+      <motion.ellipse cx="117" cy="158" rx="18" ry="9" fill="#6aaa40" transform="rotate(25,117,158)"
+        animate={{ rotate: [25,20,25] }} transition={{ ...wt, delay: 0.4 }} style={{ transformOrigin: "100px 163px" }}
+      />
+      <motion.ellipse cx="85" cy="128" rx="15" ry="8" fill="#7abb50" transform="rotate(-35,85,128)"
+        animate={{ rotate: [-35,-29,-35] }} transition={{ ...wt, delay: 0.2 }} style={{ transformOrigin: "100px 133px" }}
+      />
+      <motion.ellipse cx="115" cy="128" rx="15" ry="8" fill="#6aab40" transform="rotate(35,115,128)"
+        animate={{ rotate: [35,29,35] }} transition={{ ...wt, delay: 0.6 }} style={{ transformOrigin: "100px 133px" }}
+      />
+    </g>
+  );
+
+  // Stage 3 — Sapling
+  if (stage === 3) return (
+    <g>
+      <ellipse cx="100" cy="180" rx="78" ry="12" fill="#3d1e08" opacity="0.8"/>
+      <rect x="94" y="105" width="12" height="76" rx="5" fill="#6b3e1a"/>
+      <rect x="97" y="105" width="4" height="76" rx="2" fill="#8b5a2a" opacity="0.35"/>
+      <path d="M100,142 Q74,126 58,115" stroke="#5a3010" strokeWidth="6" fill="none" strokeLinecap="round"/>
+      <path d="M100,142 Q126,126 142,115" stroke="#5a3010" strokeWidth="6" fill="none" strokeLinecap="round"/>
+      <motion.ellipse cx="100" cy="92" rx="40" ry="30" fill="#5a9a30"
+        animate={{ scale: [1, 1.03, 1] }} transition={wt} style={{ transformOrigin: "100px 92px" }}
+      />
+      <motion.ellipse cx="60" cy="108" rx="28" ry="22" fill="#6aaa40"
+        animate={{ scale: [1, 1.035, 1] }} transition={{ ...wt, delay: 0.35 }} style={{ transformOrigin: "60px 108px" }}
+      />
+      <motion.ellipse cx="140" cy="108" rx="28" ry="22" fill="#5a9a35"
+        animate={{ scale: [1, 1.035, 1] }} transition={{ ...wt, delay: 0.7 }} style={{ transformOrigin: "140px 108px" }}
+      />
+    </g>
+  );
+
+  // Stage 4 — Young Tree
+  if (stage === 4) return (
+    <g>
+      <ellipse cx="100" cy="182" rx="82" ry="13" fill="#3d1e08" opacity="0.8"/>
+      <rect x="90" y="98" width="20" height="84" rx="8" fill="#7a4a20"/>
+      <rect x="95" y="98" width="6" height="84" rx="3" fill="#a06838" opacity="0.3"/>
+      <path d="M100,132 Q66,114 48,103" stroke="#6a3a18" strokeWidth="8" fill="none" strokeLinecap="round"/>
+      <path d="M100,132 Q134,114 152,103" stroke="#6a3a18" strokeWidth="8" fill="none" strokeLinecap="round"/>
+      <path d="M100,116 Q83,100 74,87" stroke="#6a3a18" strokeWidth="5" fill="none" strokeLinecap="round"/>
+      <path d="M100,116 Q117,100 126,87" stroke="#6a3a18" strokeWidth="5" fill="none" strokeLinecap="round"/>
+      <motion.ellipse cx="100" cy="72" rx="52" ry="40" fill="#4a8a28"
+        animate={{ scale: [1, 1.02, 1] }} transition={wt} style={{ transformOrigin: "100px 72px" }}
+      />
+      <motion.ellipse cx="54" cy="96" rx="36" ry="28" fill="#5a9a38"
+        animate={{ scale: [1, 1.03, 1] }} transition={{ ...wt, delay: 0.45 }} style={{ transformOrigin: "54px 96px" }}
+      />
+      <motion.ellipse cx="146" cy="96" rx="36" ry="28" fill="#4a8a30"
+        animate={{ scale: [1, 1.03, 1] }} transition={{ ...wt, delay: 0.8 }} style={{ transformOrigin: "146px 96px" }}
+      />
+      <motion.ellipse cx="100" cy="52" rx="38" ry="30" fill="#6aaa48"
+        animate={{ scale: [1, 1.04, 1] }} transition={{ ...wt, delay: 0.2 }} style={{ transformOrigin: "100px 52px" }}
+      />
+    </g>
+  );
+
+  // Stage 5 — Grove Tree
+  if (stage === 5) return (
+    <g>
+      <ellipse cx="100" cy="184" rx="88" ry="14" fill="#3d1e08" opacity="0.8"/>
+      <rect x="87" y="92" width="26" height="92" rx="10" fill="#7a4a20"/>
+      <rect x="93" y="92" width="8" height="92" rx="4" fill="#a06838" opacity="0.28"/>
+      <path d="M87,180 Q70,180 54,185" stroke="#6a3a18" strokeWidth="7" fill="none" strokeLinecap="round"/>
+      <path d="M113,180 Q130,180 146,185" stroke="#6a3a18" strokeWidth="7" fill="none" strokeLinecap="round"/>
+      <path d="M100,126 Q60,106 36,93" stroke="#6a3a18" strokeWidth="11" fill="none" strokeLinecap="round"/>
+      <path d="M100,126 Q140,106 164,93" stroke="#6a3a18" strokeWidth="11" fill="none" strokeLinecap="round"/>
+      <path d="M100,110 Q78,90 65,74" stroke="#6a3a18" strokeWidth="7" fill="none" strokeLinecap="round"/>
+      <path d="M100,110 Q122,90 135,74" stroke="#6a3a18" strokeWidth="7" fill="none" strokeLinecap="round"/>
+      <motion.ellipse cx="100" cy="64" rx="64" ry="50" fill="#3a7a20"
+        animate={{ scale: [1, 1.015, 1] }} transition={wt} style={{ transformOrigin: "100px 64px" }}
+      />
+      <motion.ellipse cx="42" cy="86" rx="46" ry="36" fill="#4a8a30"
+        animate={{ scale: [1, 1.022, 1] }} transition={{ ...wt, delay: 0.5 }} style={{ transformOrigin: "42px 86px" }}
+      />
+      <motion.ellipse cx="158" cy="86" rx="46" ry="36" fill="#408828"
+        animate={{ scale: [1, 1.022, 1] }} transition={{ ...wt, delay: 0.9 }} style={{ transformOrigin: "158px 86px" }}
+      />
+      <motion.ellipse cx="100" cy="42" rx="48" ry="36" fill="#5a9a40"
+        animate={{ scale: [1, 1.03, 1] }} transition={{ ...wt, delay: 0.3 }} style={{ transformOrigin: "100px 42px" }}
+      />
+      <motion.ellipse cx="70" cy="52" rx="34" ry="26" fill="#6aaa48"
+        animate={{ scale: [1, 1.03, 1] }} transition={{ ...wt, delay: 0.65 }} style={{ transformOrigin: "70px 52px" }}
+      />
+      <motion.ellipse cx="130" cy="52" rx="34" ry="26" fill="#5a9a38"
+        animate={{ scale: [1, 1.03, 1] }} transition={{ ...wt, delay: 1.0 }} style={{ transformOrigin: "130px 52px" }}
+      />
+    </g>
+  );
+
+  // Stage 6 — Fruiting Tree
+  if (stage === 6 || stage === 7) {
+    const fruits = [
+      {cx:70,cy:46},{cx:92,cy:36},{cx:116,cy:42},{cx:54,cy:70},{cx:132,cy:66},{cx:100,cy:28},{cx:148,cy:80},
+    ];
+    const sparkles = stage === 7 ? [{x:58,y:33},{x:142,y:38},{x:76,y:18},{x:124,y:20},{x:48,y:58},{x:154,y:53}] : [];
+    return (
+      <g>
+        <ellipse cx="100" cy="184" rx="90" ry="14" fill="#3d1e08" opacity="0.8"/>
+        <rect x="86" y="90" width="28" height="94" rx="11" fill="#8a5428"/>
+        <rect x="92" y="90" width="9" height="94" rx="4" fill="#b07040" opacity="0.28"/>
+        <path d="M86,180 Q66,180 50,186" stroke="#7a4420" strokeWidth="8" fill="none" strokeLinecap="round"/>
+        <path d="M114,180 Q134,180 150,186" stroke="#7a4420" strokeWidth="8" fill="none" strokeLinecap="round"/>
+        <path d="M100,122 Q56,100 32,88" stroke="#7a4420" strokeWidth="12" fill="none" strokeLinecap="round"/>
+        <path d="M100,122 Q144,100 168,88" stroke="#7a4420" strokeWidth="12" fill="none" strokeLinecap="round"/>
+        <path d="M100,106 Q76,86 62,70" stroke="#7a4420" strokeWidth="7" fill="none" strokeLinecap="round"/>
+        <path d="M100,106 Q124,86 138,70" stroke="#7a4420" strokeWidth="7" fill="none" strokeLinecap="round"/>
+        {/* Canopy */}
+        <motion.ellipse cx="100" cy="62" rx="66" ry="52" fill="#386a1c"
+          animate={{ scale: [1, 1.014, 1] }} transition={wt} style={{ transformOrigin: "100px 62px" }}
+        />
+        <motion.ellipse cx="40" cy="84" rx="48" ry="37" fill="#448228"
+          animate={{ scale: [1, 1.02, 1] }} transition={{ ...wt, delay: 0.5 }} style={{ transformOrigin: "40px 84px" }}
+        />
+        <motion.ellipse cx="160" cy="84" rx="48" ry="37" fill="#3e7822"
+          animate={{ scale: [1, 1.02, 1] }} transition={{ ...wt, delay: 0.9 }} style={{ transformOrigin: "160px 84px" }}
+        />
+        <motion.ellipse cx="100" cy="40" rx="50" ry="40" fill="#589240"
+          animate={{ scale: [1, 1.025, 1] }} transition={{ ...wt, delay: 0.3 }} style={{ transformOrigin: "100px 40px" }}
+        />
+        <motion.ellipse cx="66" cy="50" rx="38" ry="29" fill="#68a848"
+          animate={{ scale: [1, 1.03, 1] }} transition={{ ...wt, delay: 0.65 }} style={{ transformOrigin: "66px 50px" }}
+        />
+        <motion.ellipse cx="134" cy="50" rx="38" ry="29" fill="#589040"
+          animate={{ scale: [1, 1.03, 1] }} transition={{ ...wt, delay: 1.0 }} style={{ transformOrigin: "134px 50px" }}
+        />
+        {/* Golden glow for ancient grove */}
+        {stage === 7 && <ellipse cx="100" cy="68" rx="68" ry="58" fill="rgba(200,160,74,0.07)"/>}
+        {/* Fruits */}
+        {fruits.map((f, i) => (
+          <motion.g key={i}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: i * 0.12, type: "spring", damping: 10, stiffness: 220 }}
+            style={{ transformOrigin: `${f.cx}px ${f.cy}px` }}
+          >
+            <motion.circle cx={f.cx} cy={f.cy} r="8" fill="#e83c3c"
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 2.5 + i * 0.25, repeat: Infinity, ease: "easeInOut", delay: i * 0.18 }}
+              style={{ transformOrigin: `${f.cx}px ${f.cy}px` }}
+            />
+            <circle cx={f.cx-2} cy={f.cy-2} r="3" fill="#ff7070" opacity="0.5"/>
+            <path d={`M${f.cx},${f.cy-8} Q${f.cx-3},${f.cy-14} ${f.cx},${f.cy-16}`} stroke="#5a8a30" strokeWidth="2" fill="none"/>
+          </motion.g>
+        ))}
+        {/* Sparkles for ancient grove */}
+        {sparkles.map((p, i) => (
+          <motion.circle key={i} cx={p.x} cy={p.y} r="2.5" fill="#f0c840"
+            animate={{ opacity: [0, 1, 0], scale: [0.5, 1.3, 0.5] }}
+            transition={{ duration: 1.8 + i * 0.3, repeat: Infinity, delay: i * 0.35 }}
+            style={{ transformOrigin: `${p.x}px ${p.y}px` }}
+          />
+        ))}
+      </g>
+    );
+  }
+
+  return null;
+}
+
+// ─── Sobriety Tree Card ───────────────────────────────────────────────────────
+function SobrietyTreeCard({ plantDays = 0 }) {
+  const stage = getPlantStage(plantDays);
+  const pct = getProgressPct(plantDays, stage);
+  const daysToNext = stage < 7 ? STAGE_THRESHOLDS[stage + 1] - plantDays : 0;
+
+  const stageEmoji = stage === 0 ? "🌰" : stage <= 2 ? "🌿" : stage <= 4 ? "🌳" : stage <= 5 ? "🌲" : "🍎";
+
+  return (
+    <div style={{
+      background: T.cardBg,
+      border: `1.5px solid ${T.cardBorder}`,
+      borderRadius: 20,
+      padding: "16px 16px 14px",
+      boxShadow: "inset 0 1px 0 rgba(255,220,130,0.06)",
+      marginBottom: 14,
+    }}>
+      {/* Header row */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+        <div>
+          <p style={{ fontFamily: "Georgia, serif", fontSize: "0.6rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 3 }}>Your Grove</p>
+          <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1rem", lineHeight: 1.2 }}>
+            {stageEmoji} {STAGE_NAMES[stage]}
+          </p>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.gold, fontSize: "0.85rem" }}>{plantDays}d sober</p>
+          <p style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: T.muted, fontStyle: "italic", marginTop: 2 }}>
+            {stage < 7 ? `${daysToNext}d to ${STAGE_NAMES[stage + 1]}` : "Max stage! ✨"}
+          </p>
+        </div>
+      </div>
+
+      {/* Tree SVG */}
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-end", height: 196, margin: "4px 0 6px" }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={stage}
+            initial={{ opacity: 0, scale: 0.88 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+          >
+            <svg viewBox="0 0 200 196" width="200" height="196" style={{ overflow: "visible" }}>
+              <TreeSVG stage={stage} />
+            </svg>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Stage description */}
+      <p style={{
+        fontFamily: "Georgia, serif", fontSize: "0.71rem", color: T.muted, fontStyle: "italic",
+        textAlign: "center", marginBottom: 10, lineHeight: 1.55,
+      }}>
+        {STAGE_DESCS[stage]}
+      </p>
+
+      {/* Progress bar */}
+      {stage < 7 && (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+            <span style={{ fontFamily: "Georgia, serif", fontSize: "0.58rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>Growth</span>
+            <span style={{ fontFamily: "Georgia, serif", fontSize: "0.58rem", color: "#6aaa48", fontWeight: 700 }}>{pct}%</span>
+          </div>
+          <div style={{ height: 6, background: "rgba(200,160,74,0.12)", borderRadius: 99, overflow: "hidden", border: "1px solid rgba(200,160,74,0.18)" }}>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${pct}%` }}
+              transition={{ duration: 1.1, ease: "easeOut" }}
+              style={{ height: "100%", background: "linear-gradient(90deg, #5a9a30, #8acc50)", borderRadius: 99 }}
+            />
+          </div>
+        </div>
+      )}
+
+      {stage === 7 && (
+        <div style={{ textAlign: "center", background: "rgba(200,160,74,0.1)", border: "1px solid rgba(200,160,74,0.25)", borderRadius: 10, padding: "8px 12px" }}>
+          <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.gold, fontSize: "0.78rem" }}>✨ Ancient Grove achieved — a new seed will bloom</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Avatar SVG ───────────────────────────────────────────────────────────────
 function HumanAvatar({ av, outfit, pose, walking, size = 320 }) {
   const wt = { duration: 0.55, repeat: Infinity, ease: "easeInOut" };
   const runwayAnim = pose === "runway" ? { x: [-55,55,-55], transition: { duration: 2.2, repeat: Infinity, ease: [0.42,0,0.58,1] } } : {};
@@ -254,7 +571,6 @@ export default function ProfilePage() {
 
               {/* Avatar preview */}
               <div style={{ position: "relative", display: "flex", alignItems: "flex-end", justifyContent: "center", flexShrink: 0, overflow: "hidden", height: "38vh", minHeight: 220, maxHeight: 320, background: "linear-gradient(180deg, rgba(200,160,74,0.15), rgba(58,32,16,0.4))" }}>
-                {/* Arch glow behind avatar */}
                 <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 60% 70% at 50% 80%, rgba(255,180,60,0.18), transparent 70%)" }} />
                 <div style={{ position: "absolute", top: 10, right: 16, display: "flex", alignItems: "center", gap: 6, background: "rgba(200,160,74,0.15)", border: "1px solid rgba(200,160,74,0.28)", borderRadius: 99, padding: "4px 10px" }}>
                   <span>{POSES.find(p => p.id === pose)?.emoji}</span>
@@ -370,7 +686,6 @@ export default function ProfilePage() {
           {/* Name row */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              {/* Avatar thumb — wooden frame */}
               <motion.button whileTap={{ scale: 0.92 }} onClick={() => setShowCustomizer(true)}
                 style={{
                   position: "relative", width: 56, height: 56, borderRadius: 16, overflow: "hidden", flexShrink: 0,
@@ -405,14 +720,13 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Logout */}
             <button onClick={handleLogout}
               style={{ width: 38, height: 38, background: "rgba(200,160,74,0.1)", border: "1.5px solid rgba(200,160,74,0.22)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.muted }}>
               <LogOut size={15} />
             </button>
           </div>
 
-          {/* XP bar — wooden track */}
+          {/* XP bar */}
           <div style={{ background: T.cardBg, border: `1.5px solid ${T.cardBorder}`, borderRadius: 16, padding: "14px 16px", marginBottom: 14, boxShadow: "inset 0 1px 0 rgba(255,220,130,0.06)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
               <span style={{ fontFamily: "Georgia, serif", fontSize: "0.72rem", color: T.gold, display: "flex", alignItems: "center", gap: 4 }}>
@@ -483,9 +797,13 @@ export default function ProfilePage() {
         <div className="relative z-10" style={{ padding: "0 20px" }}>
           <AnimatePresence mode="wait">
 
-            {/* PROFILE */}
+            {/* PROFILE TAB */}
             {activeTab === "profile" && (
               <motion.div key="profile" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+
+                {/* 🌱 SOBRIETY TREE — lives right here, above the stats grid */}
+                <SobrietyTreeCard plantDays={userData?.plantDays ?? 0} />
+
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                   {[
                     { label: "Days Sober",   value: userData?.daysSober ?? 0,              glyph: "🧘" },
@@ -519,11 +837,10 @@ export default function ProfilePage() {
               </motion.div>
             )}
 
-            {/* ACHIEVEMENTS */}
+            {/* ACHIEVEMENTS TAB */}
             {activeTab === "achievements" && (
               <motion.div key="achievements" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
-                {/* Banner — wooden arch style */}
                 <div style={{
                   background: "linear-gradient(135deg, rgba(90,52,24,0.9), rgba(58,32,16,0.95))",
                   border: "2px solid rgba(200,160,74,0.4)",
@@ -554,7 +871,6 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Earned feats */}
                 {earned.length > 0 && (
                   <div>
                     <p style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>✅ Unlocked ({earned.length})</p>
@@ -592,7 +908,6 @@ export default function ProfilePage() {
                   </div>
                 )}
 
-                {/* Locked feats */}
                 {locked.length > 0 && (
                   <div>
                     <p style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>🔒 Locked ({locked.length})</p>
