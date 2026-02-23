@@ -16,7 +16,20 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../src/lib/firebase";
 import BottomNav from "../components/BottomNav";
 
-// ─── Greeting ─────────────────────────────────────────────────────────────────
+// ─── Theme tokens ─────────────────────────────────────────────────────────────
+const T = {
+  gold:      "#c8a060",
+  goldLight: "#f7e0bb",
+  muted:     "#a07848",
+  text:      "#3d2410",
+  link:      "#6ab4d8",
+  parchment: "linear-gradient(180deg, #f5e8c8 0%, #ede0b4 100%)",
+  cardBg:    "linear-gradient(135deg, rgba(90,52,24,0.72) 0%, rgba(58,32,16,0.82) 100%)",
+  cardBorder:"rgba(200,160,74,0.28)",
+  pageBg:    "linear-gradient(160deg, #2d1a0c 0%, #3d2210 40%, #2a1808 100%)",
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function getGreeting() {
   const h = new Date().getHours();
   if (h < 12) return "Good morning";
@@ -25,32 +38,89 @@ function getGreeting() {
 }
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
-function Skeleton({ className = "" }) {
-  return <div className={`animate-pulse bg-slate-100 rounded-2xl ${className}`} />;
+function Skeleton({ style = {} }) {
+  return (
+    <div style={{
+      background: "rgba(200,160,74,0.1)", borderRadius: 16,
+      animation: "shimmer 1.6s ease-in-out infinite alternate",
+      ...style,
+    }} />
+  );
 }
 
 function DashboardSkeleton() {
   return (
-    <div className="p-5 max-w-lg mx-auto space-y-5 pt-8 pb-32">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <Skeleton className="w-14 h-14 rounded-2xl" />
-          <div className="space-y-2">
-            <Skeleton className="h-3 w-24" />
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-1.5 w-36 rounded-full" />
-          </div>
+    <div style={{ background: T.pageBg, minHeight: "100vh", padding: "32px 20px 120px" }}>
+      <style>{`@keyframes shimmer{from{opacity:.4}to{opacity:.9}}`}</style>
+      <div style={{ maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
+        <Skeleton style={{ height: 72, width: "100%" }} />
+        <Skeleton style={{ height: 180, width: "100%" }} />
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          {[...Array(4)].map((_, i) => <Skeleton key={i} style={{ height: 110 }} />)}
         </div>
-        <div className="flex gap-2">
-          <Skeleton className="h-8 w-14 rounded-full" />
-          <Skeleton className="h-8 w-14 rounded-full" />
-        </div>
+        <Skeleton style={{ height: 200, width: "100%" }} />
       </div>
-      <Skeleton className="h-48 w-full rounded-3xl" />
-      <div className="grid grid-cols-2 gap-3">
-        {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 rounded-3xl" />)}
-      </div>
-      <Skeleton className="h-52 w-full rounded-3xl" />
+    </div>
+  );
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+function DashboardCard({ title, icon, glyph, onClick }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="text-left transition-all active:scale-[0.97]"
+      style={{
+        background: hovered
+          ? "linear-gradient(135deg, rgba(110,64,28,0.82) 0%, rgba(72,40,20,0.9) 100%)"
+          : T.cardBg,
+        border: `1.5px solid ${T.cardBorder}`,
+        borderRadius: 18,
+        padding: "18px 16px",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,220,130,0.06)",
+        cursor: "pointer",
+        transition: "background 0.2s",
+      }}>
+      <div style={{
+        width: 42, height: 42, borderRadius: 12, marginBottom: 10,
+        background: "rgba(200,160,74,0.14)",
+        border: "1.5px solid rgba(200,160,74,0.25)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: "1.3rem",
+        boxShadow: "inset 0 1px 0 rgba(255,220,130,0.1)",
+      }}>{glyph}</div>
+      <h3 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.88rem" }}>{title}</h3>
+    </button>
+  );
+}
+
+function StatMiniCard({ label, value, glyph, color }) {
+  return (
+    <div style={{
+      background: T.cardBg, border: `1.5px solid ${T.cardBorder}`,
+      borderRadius: 14, padding: "12px 8px", textAlign: "center",
+      boxShadow: "inset 0 1px 0 rgba(255,220,130,0.05)",
+    }}>
+      <div style={{ fontSize: "1.1rem", marginBottom: 4 }}>{glyph}</div>
+      <div style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.9rem", lineHeight: 1.2 }}>{value}</div>
+      <div style={{ fontFamily: "Georgia, serif", fontSize: "0.6rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 3 }}>{label}</div>
+    </div>
+  );
+}
+
+function StatBubble({ glyph, value }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 5,
+      background: "rgba(200,160,74,0.13)",
+      border: "1.5px solid rgba(200,160,74,0.3)",
+      borderRadius: 99, padding: "5px 12px",
+      fontFamily: "Georgia, serif", fontWeight: 900, color: T.gold, fontSize: "0.78rem",
+    }}>
+      <span>{glyph}</span>
+      <span>{value}</span>
     </div>
   );
 }
@@ -58,40 +128,29 @@ function DashboardSkeleton() {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const router = useRouter();
-
   const [userData,  setUserData]  = useState(null);
   const [checkins,  setCheckins]  = useState([]);
   const [loading,   setLoading]   = useState(true);
   const [authReady, setAuthReady] = useState(false);
   const [timeLeft,  setTimeLeft]  = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
 
-  // ── Auth guard + Firestore load ───────────────────────────────────────────
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       setAuthReady(true);
       if (!user) { router.push("/login"); return; }
-
       try {
         const userSnap = await getDoc(doc(db, "users", user.uid));
         if (!userSnap.exists()) { router.push("/onboarding"); return; }
         setUserData(userSnap.data());
-
-        const q = query(
-          collection(db, "users", user.uid, "checkins"),
-          orderBy("date", "asc")
-        );
+        const q = query(collection(db, "users", user.uid, "checkins"), orderBy("date", "asc"));
         const snap = await getDocs(q);
         setCheckins(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      } catch (err) {
-        console.error("Dashboard load error:", err);
-      } finally {
-        setLoading(false);
-      }
+      } catch (err) { console.error("Dashboard load error:", err); }
+      finally { setLoading(false); }
     });
     return () => unsub();
   }, [router]);
 
-  // ── Sobriety timer — ticks every second ──────────────────────────────────
   useEffect(() => {
     if (!userData?.sobrietyDate) return;
     const tick = () => {
@@ -108,7 +167,6 @@ export default function DashboardPage() {
     return () => clearInterval(id);
   }, [userData?.sobrietyDate]);
 
-  // ── Computed values ───────────────────────────────────────────────────────
   const levelProgress = useMemo(() => {
     const xp = userData?.xp ?? 0, level = userData?.level ?? 1;
     return Math.min(100, Math.max(0, ((xp - (level - 1) * 1000) / 1000) * 100));
@@ -117,10 +175,9 @@ export default function DashboardPage() {
   const streak = useMemo(() => {
     if (!checkins.length) return userData?.currentStreak ?? 0;
     const sorted = [...checkins].sort((a, b) => b.date.toDate() - a.date.toDate());
-    let count = 0;
-    let cursor = new Date(); cursor.setHours(0, 0, 0, 0);
+    let count = 0, cursor = new Date(); cursor.setHours(0,0,0,0);
     for (const c of sorted) {
-      const d = c.date.toDate(); d.setHours(0, 0, 0, 0);
+      const d = c.date.toDate(); d.setHours(0,0,0,0);
       const diff = Math.round((cursor - d) / 86400000);
       if (diff === 0 || diff === 1) { count++; cursor = d; } else break;
     }
@@ -135,8 +192,7 @@ export default function DashboardPage() {
 
   const calories = useMemo(() => {
     if (!userData?.sobrietyDate) return 0;
-    const days = Math.floor((Date.now() - new Date(userData.sobrietyDate).getTime()) / 86400000);
-    return days * 150; // avg 150 cal/drink session
+    return Math.floor((Date.now() - new Date(userData.sobrietyDate).getTime()) / 86400000) * 150;
   }, [userData]);
 
   const chartData = useMemo(() =>
@@ -147,198 +203,281 @@ export default function DashboardPage() {
     })),
   [checkins]);
 
-  // ── Render ────────────────────────────────────────────────────────────────
   if (!authReady || loading) return <DashboardSkeleton />;
   if (!userData) return null;
 
-  const firstName = (userData.name ?? "Friend").split(" ")[0];
+  const firstName   = (userData.name ?? "Seeker").split(" ")[0];
   const healthScore = Math.min(99, 60 + timeLeft.days);
 
   return (
-    <>
+    <div style={{ background: T.pageBg, minHeight: "100vh" }}>
+      {/* Global styles */}
+      <style>{`
+        @keyframes pulse{from{opacity:.3;transform:scale(1)}to{opacity:1;transform:scale(1.4)}}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+      `}</style>
+
+      {/* Atmospheric glow */}
+      <div className="fixed inset-0 pointer-events-none" style={{
+        background: "radial-gradient(ellipse 60% 35% at 50% 0%, rgba(255,180,60,0.13), transparent 65%)",
+      }} />
+
+      {/* Floating sparkles */}
+      <div className="fixed inset-0 pointer-events-none opacity-50">
+        {[
+          { l:"6%",  t:"10%", c:"rgba(255,230,140,0.8)" },
+          { l:"88%", t:"16%", c:"rgba(180,240,200,0.7)" },
+          { l:"14%", t:"78%", c:"rgba(255,230,140,0.6)" },
+          { l:"83%", t:"70%", c:"rgba(180,240,200,0.7)" },
+          { l:"50%", t:"4%",  c:"rgba(255,230,140,0.7)" },
+          { l:"30%", t:"55%", c:"rgba(180,240,200,0.5)" },
+        ].map((p, i) => (
+          <div key={i} className="absolute rounded-full"
+            style={{ left: p.l, top: p.t, width: 5, height: 5, background: p.c,
+              animation: `pulse ${2.2+i*0.4}s ease-in-out infinite alternate`,
+              animationDelay: `${i*0.35}s` }}
+          />
+        ))}
+      </div>
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="p-5 max-w-lg mx-auto space-y-5 pb-32 pt-6"
+        className="relative z-10 max-w-lg mx-auto px-5 pb-32 pt-8 space-y-4"
       >
 
         {/* ── HEADER ── */}
         <header className="flex justify-between items-start">
           <div className="flex items-center gap-3">
+            {/* Level badge — styled as a wooden shield */}
             <div className="relative shrink-0">
-              <div className="w-14 h-14 bg-gradient-to-tr from-blue-600 to-emerald-400 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
-                <span className="text-xl font-black">{userData.level ?? 1}</span>
+              <div style={{
+                width: 56, height: 56, borderRadius: 14,
+                background: "linear-gradient(135deg, #d4b483, #8a6030)",
+                border: "2px solid #b8954a",
+                boxShadow: "0 3px 0 #6a4820, 0 6px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,230,160,0.4)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <span style={{ fontFamily: "Georgia, serif", fontWeight: 900, fontSize: "1.3rem", color: T.text }}>
+                  {userData.level ?? 1}
+                </span>
               </div>
-              <div className="absolute -top-1 -right-1 bg-yellow-400 p-1 rounded-full shadow-sm">
-                <Trophy size={11} className="text-white" />
-              </div>
+              {/* Trophy gem */}
+              <div style={{
+                position: "absolute", top: -6, right: -6,
+                background: "linear-gradient(135deg, #ffd700, #c8a030)",
+                borderRadius: "50%", width: 20, height: 20,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+                fontSize: "0.6rem",
+              }}>🏆</div>
             </div>
+
             <div>
-              <p className="text-xs text-slate-400 font-semibold">{getGreeting()},</p>
-              <h1 className="font-black text-slate-800 text-base leading-tight">{firstName} 👋</h1>
-              <div className="w-36 h-1.5 bg-slate-100 rounded-full overflow-hidden mt-1.5">
+              <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.72rem", fontStyle: "italic" }}>{getGreeting()},</p>
+              <h1 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.05rem", lineHeight: 1.2 }}>
+                {firstName} ⚔️
+              </h1>
+              {/* XP bar — styled as a wooden progress track */}
+              <div style={{
+                width: 140, height: 7, borderRadius: 99, overflow: "hidden", marginTop: 6,
+                background: "rgba(200,160,74,0.18)",
+                border: "1px solid rgba(200,160,74,0.25)",
+              }}>
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${levelProgress}%` }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
-                  className="h-full bg-blue-600 rounded-full"
+                  transition={{ duration: 0.9, ease: "easeOut" }}
+                  style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #c8a060, #f0c840)" }}
                 />
               </div>
-              <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
+              <p style={{ fontFamily: "Georgia, serif", fontSize: "0.6rem", color: T.muted, marginTop: 2 }}>
                 {userData.xp ?? 0} / {(userData.level ?? 1) * 1000} XP
               </p>
             </div>
           </div>
 
-          <div className="flex gap-2 shrink-0">
-            <StatBubble icon={<Flame size={14} />}  value={`${streak}d`}           color="bg-orange-50 text-orange-500" />
-            <StatBubble icon={<Shield size={14} />} value={userData.shieldCount ?? 0} color="bg-blue-50 text-blue-600" />
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end" }}>
+            <StatBubble glyph="🔥" value={`${streak}d`} />
+            <StatBubble glyph="🛡️" value={userData.shieldCount ?? 0} />
           </div>
         </header>
 
         {/* ── SOBRIETY TIMER ── */}
-        <section
-          className="rounded-3xl p-6 text-center relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 55%,#0891b2 100%)" }}
-        >
-          <div className="absolute top-0 right-0 w-36 h-36 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5  rounded-full  translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+        <section style={{
+          borderRadius: 22, padding: "24px 20px", textAlign: "center", position: "relative", overflow: "hidden",
+          background: "linear-gradient(160deg, #3d2210 0%, #5a3418 50%, #3d2210 100%)",
+          border: "2px solid rgba(200,160,74,0.35)",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,220,130,0.12)",
+        }}>
+          {/* Decorative arch ring */}
+          <div className="absolute pointer-events-none" style={{
+            top: -80, left: "50%", transform: "translateX(-50%)",
+            width: 280, height: 280, borderRadius: "50%",
+            border: "22px solid rgba(200,160,74,0.08)",
+          }} />
+          {/* Warm glow center */}
+          <div className="absolute inset-0 pointer-events-none" style={{
+            background: "radial-gradient(ellipse 70% 55% at 50% 60%, rgba(255,180,60,0.12), transparent 70%)",
+          }} />
 
-          <p className="text-[10px] uppercase text-blue-200 font-bold tracking-widest mb-4 relative z-10">
-            🎯 Alcohol Free For
+          <p style={{ fontFamily: "Georgia, serif", fontSize: "0.65rem", color: T.muted, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16, position: "relative", zIndex: 1 }}>
+            ⚔️ &nbsp;Alcohol Free For
           </p>
 
-          <div className="flex justify-center gap-5 mb-5 relative z-10">
+          {/* Rune accent */}
+          <p style={{ color: "rgba(200,160,74,0.2)", fontSize: "0.65rem", letterSpacing: "0.3em", fontFamily: "serif", marginBottom: 12, position: "relative", zIndex: 1 }}>
+            ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚺ
+          </p>
+
+          {/* Time blocks */}
+          <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 20, position: "relative", zIndex: 1 }}>
             {[
               { v: timeLeft.days,  l: "Days"  },
               { v: timeLeft.hours, l: "Hours" },
               { v: timeLeft.mins,  l: "Mins"  },
               { v: timeLeft.secs,  l: "Secs"  },
             ].map(({ v, l }) => (
-              <div key={l} className="flex flex-col items-center">
-                <div className="text-3xl font-black text-white tabular-nums w-14 text-center">
-                  {String(v).padStart(2, "0")}
+              <div key={l} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <div style={{
+                  background: "linear-gradient(180deg, rgba(200,160,74,0.2), rgba(200,160,74,0.08))",
+                  border: "1.5px solid rgba(200,160,74,0.3)",
+                  borderRadius: 12, width: 58, height: 58,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "inset 0 2px 6px rgba(0,0,0,0.2), 0 2px 0 rgba(200,160,74,0.15)",
+                  marginBottom: 5,
+                }}>
+                  <span style={{ fontFamily: "Georgia, serif", fontWeight: 900, fontSize: "1.5rem", color: T.goldLight, fontVariantNumeric: "tabular-nums" }}>
+                    {String(v).padStart(2, "0")}
+                  </span>
                 </div>
-                <div className="text-[9px] text-blue-200 uppercase font-bold tracking-wider">{l}</div>
+                <span style={{ fontFamily: "Georgia, serif", fontSize: "0.58rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.1em" }}>{l}</span>
               </div>
             ))}
           </div>
 
           {!userData.sobrietyDate && (
-            <p className="text-xs text-blue-300 mb-4 relative z-10">
-              Set your sobriety date in Profile to activate the timer.
+            <p style={{ fontFamily: "Georgia, serif", fontSize: "0.75rem", color: T.muted, marginBottom: 12, fontStyle: "italic", position: "relative", zIndex: 1 }}>
+              Set your sobriety date in Profile to begin your quest.
             </p>
           )}
 
+          {/* Check-in button */}
           <button
             onClick={() => router.push("/checkin")}
-            className="relative z-10 bg-white text-blue-700 px-7 py-3 rounded-2xl font-black text-sm shadow-lg active:scale-95 transition-transform inline-flex items-center gap-2"
+            className="transition-all active:scale-[0.97] active:translate-y-0.5"
+            style={{
+              position: "relative", zIndex: 1,
+              background: "linear-gradient(180deg, #5ecef5 0%, #38b6f0 40%, #1a96d8 100%)",
+              border: "2px solid #1478b0",
+              borderRadius: 24, padding: "12px 28px",
+              boxShadow: "0 4px 0 #0e5c8a, 0 6px 20px rgba(30,140,210,0.35), inset 0 1px 0 rgba(255,255,255,0.4)",
+              color: "#fff", fontWeight: 900, fontFamily: "Georgia, serif",
+              fontSize: "0.82rem", letterSpacing: "0.1em", textTransform: "uppercase",
+              textShadow: "0 1px 3px rgba(0,80,160,0.5)",
+              display: "inline-flex", alignItems: "center", gap: 8, cursor: "pointer",
+            }}
           >
-            <Plus size={16} />
-            Daily Check-In
+            ✦ Daily Check-In
           </button>
         </section>
 
         {/* ── ACTION GRID ── */}
-        <section className="grid grid-cols-2 gap-3">
+        <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {[
-            { title: "Recovery Map",  icon: <Map size={22} />,          path: "/map",       color: "text-blue-600   bg-blue-50"    },
-            { title: "CBT Exercises", icon: <Brain size={22} />,         path: "/cbt",       color: "text-purple-600 bg-purple-50"  },
-            { title: "Community",     icon: <MessageSquare size={22} />, path: "/community", color: "text-emerald-600 bg-emerald-50" },
-            { title: "Craving Help",  icon: <AlertCircle size={22} />,   path: "/emergency", color: "text-rose-600   bg-rose-50"    },
-          ].map(({ title, icon, path, color }) => (
-            <DashboardCard key={path} title={title} icon={icon} color={color} onClick={() => router.push(path)} />
+            { title: "Recovery Map",  glyph: "🗺️", path: "/map"       },
+            { title: "CBT Exercises", glyph: "🧠", path: "/cbt"       },
+            { title: "Community",     glyph: "🏰", path: "/community" },
+            { title: "Craving Help",  glyph: "⚡", path: "/emergency" },
+          ].map(({ title, glyph, path }) => (
+            <DashboardCard key={path} title={title} glyph={glyph} onClick={() => router.push(path)} />
           ))}
         </section>
 
         {/* ── INSIGHTS ── */}
         <section>
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="font-black text-slate-800">Your Insights</h2>
-            <button
-              onClick={() => router.push("/insights")}
-              className="text-blue-600 text-xs font-bold flex items-center gap-0.5"
-            >
-              View All <ArrowUpRight size={13} />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1rem" }}>
+              Your Insights
+            </h2>
+            <button onClick={() => router.push("/insights")}
+              style={{ fontFamily: "Georgia, serif", color: T.link, fontSize: "0.75rem", fontWeight: 700, display: "flex", alignItems: "center", gap: 2, background: "none", border: "none", cursor: "pointer" }}>
+              View All <ArrowUpRight size={12} />
             </button>
           </div>
 
           {/* Stat mini-cards */}
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            <StatMiniCard
-              label="Saved"
-              value={moneySaved > 0 ? `₹${moneySaved.toLocaleString("en-IN")}` : "₹0"}
-              icon={<DollarSign size={16} />}
-              color="text-emerald-600"
-            />
-            <StatMiniCard
-              label="Calories"
-              value={calories > 999 ? `${(calories / 1000).toFixed(1)}k` : String(calories)}
-              icon={<Zap size={16} />}
-              color="text-amber-500"
-            />
-            <StatMiniCard
-              label="Health"
-              value={`${healthScore}%`}
-              icon={<Activity size={16} />}
-              color="text-blue-500"
-            />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
+            <StatMiniCard label="Saved"    value={moneySaved > 0 ? `₹${moneySaved.toLocaleString("en-IN")}` : "₹0"} glyph="💰" />
+            <StatMiniCard label="Calories" value={calories > 999 ? `${(calories / 1000).toFixed(1)}k` : String(calories)} glyph="⚡" />
+            <StatMiniCard label="Health"   value={`${healthScore}%`} glyph="❤️" />
           </div>
 
-          {/* Chart */}
-          <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
+          {/* Chart card — parchment style */}
+          <div style={{
+            background: T.parchment,
+            border: "2px solid #b8954a",
+            borderRadius: 18, padding: "18px",
+            boxShadow: "inset 0 2px 8px rgba(0,0,0,0.1), 0 2px 0 rgba(255,220,130,0.2)",
+          }}>
             {chartData.length > 0 ? (
               <>
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Mood & Cravings</p>
-                  <div className="flex items-center gap-3 text-[10px] font-semibold text-slate-400">
-                    <span className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />Mood
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <p style={{ fontFamily: "Georgia, serif", fontSize: "0.7rem", color: T.text, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    Mood & Cravings
+                  </p>
+                  <div style={{ display: "flex", gap: 12, fontSize: "0.65rem", fontFamily: "Georgia, serif", color: "#6b4c2e" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#8a6030", display: "inline-block" }} />Mood
                     </span>
-                    <span className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-rose-400 inline-block" />Cravings
+                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#c07050", display: "inline-block" }} />Cravings
                     </span>
                   </div>
                 </div>
-                <div className="h-36">
+                <div style={{ height: 140 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
                       <defs>
                         <linearGradient id="moodGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%"  stopColor="#3B82F6" stopOpacity={0.2} />
-                          <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}   />
+                          <stop offset="5%"  stopColor="#8a6030" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#8a6030" stopOpacity={0}    />
                         </linearGradient>
                         <linearGradient id="cravGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%"  stopColor="#F87171" stopOpacity={0.15} />
-                          <stop offset="95%" stopColor="#F87171" stopOpacity={0}    />
+                          <stop offset="5%"  stopColor="#c07050" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="#c07050" stopOpacity={0}    />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                      <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(139,96,48,0.15)" />
+                      <XAxis dataKey="name" tick={{ fontSize: 9, fill: "#8a6030", fontFamily: "Georgia, serif" }} axisLine={false} tickLine={false} />
                       <Tooltip
-                        contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 12 }}
-                        cursor={{ stroke: "#e2e8f0" }}
+                        contentStyle={{ borderRadius: 10, border: "1.5px solid #b8954a", background: "#f5e8c8", fontSize: 11, fontFamily: "Georgia, serif", color: T.text }}
+                        cursor={{ stroke: "rgba(139,96,48,0.2)" }}
                       />
-                      <Area type="monotone" dataKey="mood"     stroke="#3B82F6" strokeWidth={2} fill="url(#moodGrad)" dot={{ r: 3, fill: "#3B82F6" }} />
-                      <Area type="monotone" dataKey="cravings" stroke="#F87171" strokeWidth={2} fill="url(#cravGrad)"  dot={{ r: 3, fill: "#F87171" }} />
+                      <Area type="monotone" dataKey="mood"     stroke="#8a6030" strokeWidth={2} fill="url(#moodGrad)" dot={{ r: 3, fill: "#8a6030" }} />
+                      <Area type="monotone" dataKey="cravings" stroke="#c07050" strokeWidth={2} fill="url(#cravGrad)"  dot={{ r: 3, fill: "#c07050" }} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-3">
-                  <TrendingUp size={22} className="text-blue-400" />
-                </div>
-                <p className="text-sm font-bold text-slate-700 mb-1">No data yet</p>
-                <p className="text-xs text-slate-400 mb-4 max-w-[200px]">
-                  Complete your first check-in to see your mood & craving trends here.
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 0", textAlign: "center" }}>
+                <div style={{ fontSize: "2rem", marginBottom: 10 }}>📜</div>
+                <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.text, fontSize: "0.9rem", marginBottom: 6 }}>The scroll is empty</p>
+                <p style={{ fontFamily: "Georgia, serif", fontSize: "0.75rem", color: "#6b4c2e", lineHeight: 1.6, marginBottom: 14, maxWidth: 200, fontStyle: "italic" }}>
+                  Complete your first check-in to begin writing your legend.
                 </p>
-                <button
-                  onClick={() => router.push("/checkin")}
-                  className="bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl active:scale-95 transition-transform"
-                >
-                  Do Check-In Now
+                <button onClick={() => router.push("/checkin")}
+                  className="transition-all active:scale-[0.97]"
+                  style={{
+                    background: "linear-gradient(180deg, #5ecef5 0%, #38b6f0 40%, #1a96d8 100%)",
+                    border: "2px solid #1478b0", borderRadius: 24, padding: "10px 20px",
+                    boxShadow: "0 3px 0 #0e5c8a, 0 6px 16px rgba(30,140,210,0.35)",
+                    color: "#fff", fontWeight: 900, fontFamily: "Georgia, serif",
+                    fontSize: "0.78rem", letterSpacing: "0.08em", textTransform: "uppercase",
+                    cursor: "pointer",
+                  }}>
+                  Begin Check-In
                 </button>
               </div>
             )}
@@ -348,41 +487,6 @@ export default function DashboardPage() {
       </motion.div>
 
       <BottomNav />
-    </>
-  );
-}
-
-/* ── Sub-components ─────────────────────────────────────────────────────────── */
-
-function DashboardCard({ title, icon, color, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className="bg-white p-5 rounded-3xl text-left border border-slate-100 shadow-sm active:scale-95 transition-transform"
-    >
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color}`}>
-        {icon}
-      </div>
-      <h3 className="font-bold text-sm text-slate-800">{title}</h3>
-    </button>
-  );
-}
-
-function StatMiniCard({ label, value, icon, color }) {
-  return (
-    <div className="bg-white p-3 rounded-2xl text-center shadow-sm border border-slate-100">
-      <div className={`flex justify-center mb-1 ${color}`}>{icon}</div>
-      <div className="font-black text-slate-800 text-sm leading-tight">{value}</div>
-      <div className="text-[10px] text-slate-400 uppercase font-semibold mt-0.5">{label}</div>
-    </div>
-  );
-}
-
-function StatBubble({ icon, value, color }) {
-  return (
-    <div className={`flex items-center gap-1 px-3 py-1.5 rounded-full font-black text-xs ${color}`}>
-      {icon}
-      <span>{value}</span>
     </div>
   );
 }

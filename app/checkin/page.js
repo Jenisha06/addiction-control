@@ -16,31 +16,47 @@ import {
 } from "lucide-react";
 import BottomNav from "../components/BottomNav";
 
+// ─── Theme tokens ─────────────────────────────────────────────────────────────
+const T = {
+  gold:       "#c8a060",
+  goldLight:  "#f7e0bb",
+  muted:      "#a07848",
+  text:       "#3d2410",
+  parchment:  "linear-gradient(180deg, #f5e8c8 0%, #ede0b4 100%)",
+  cardBg:     "linear-gradient(135deg, rgba(90,52,24,0.72) 0%, rgba(58,32,16,0.82) 100%)",
+  cardBorder: "rgba(200,160,74,0.28)",
+  pageBg:     "linear-gradient(160deg, #2d1a0c 0%, #3d2210 40%, #2a1808 100%)",
+  questBtn:   "linear-gradient(180deg, #5ecef5 0%, #38b6f0 40%, #1a96d8 100%)",
+  questShadow:"0 4px 0 #0e5c8a, 0 6px 20px rgba(30,140,210,0.4), inset 0 1px 0 rgba(255,255,255,0.4)",
+  woodLight:  "linear-gradient(180deg, #d4b483 0%, #b8955c 50%, #a07840 100%)",
+  btnBorder:  "#8a6030",
+  btnShadow:  "0 3px 0 #6a4820, 0 4px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,230,160,0.4)",
+};
+
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const EMOTIONS = [
-  { icon: Smile,  label: "Great",  value: 5, color: "text-emerald-500", bg: "bg-emerald-50 border-emerald-200" },
-  { icon: Meh,    label: "Okay",   value: 4, color: "text-blue-500",    bg: "bg-blue-50 border-blue-200"    },
-  { icon: Frown,  label: "Low",    value: 3, color: "text-amber-500",   bg: "bg-amber-50 border-amber-200"  },
-  { icon: Angry,  label: "Tense",  value: 2, color: "text-orange-500",  bg: "bg-orange-50 border-orange-200"},
-  { icon: Skull,  label: "Bad",    value: 1, color: "text-rose-500",    bg: "bg-rose-50 border-rose-200"    },
+  { icon: Smile, label: "Great",  value: 5, color: "#7aab6a", glyph: "🌿", accent: "rgba(122,171,106,0.2)",  border: "rgba(122,171,106,0.45)" },
+  { icon: Meh,   label: "Okay",   value: 4, color: "#6ab4d8", glyph: "🌊", accent: "rgba(106,180,216,0.2)",  border: "rgba(106,180,216,0.45)" },
+  { icon: Frown, label: "Low",    value: 3, color: "#c8a060", glyph: "🍂", accent: "rgba(200,160,96,0.2)",   border: "rgba(200,160,96,0.45)"  },
+  { icon: Angry, label: "Tense",  value: 2, color: "#c08060", glyph: "⛰️", accent: "rgba(192,128,96,0.2)",   border: "rgba(192,128,96,0.45)"  },
+  { icon: Skull, label: "Bad",    value: 1, color: "#c06060", glyph: "🌑", accent: "rgba(192,96,96,0.2)",    border: "rgba(192,96,96,0.45)"   },
 ];
 
 const CRAVING_LABELS = ["", "Very Low", "Low", "Medium", "High", "Intense"];
-const CRAVING_COLORS = ["", "text-emerald-600", "text-blue-500", "text-amber-500", "text-orange-500", "text-rose-600"];
-
-const TOTAL_STEPS = 3; // mood → craving → drank
+const CRAVING_COLORS = ["", "#7aab6a", "#6ab4d8", "#c8a060", "#c08060", "#c06060"];
+const TOTAL_STEPS = 3;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function ProgressBar({ step }) {
   return (
-    <div className="flex gap-1.5 mb-8">
+    <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
       {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-        <div key={i} className="flex-1 h-1.5 rounded-full overflow-hidden bg-slate-100">
+        <div key={i} style={{ flex: 1, height: 5, borderRadius: 99, overflow: "hidden", background: "rgba(200,160,74,0.14)", border: "1px solid rgba(200,160,74,0.18)" }}>
           <motion.div
-            className="h-full bg-blue-600 rounded-full"
             initial={{ width: 0 }}
             animate={{ width: i < step ? "100%" : "0%" }}
             transition={{ duration: 0.3 }}
+            style={{ height: "100%", background: "linear-gradient(90deg, #c8a060, #f0c840)", borderRadius: 99 }}
           />
         </div>
       ))}
@@ -50,11 +66,9 @@ function ProgressBar({ step }) {
 
 function BackButton({ onClick }) {
   return (
-    <button
-      onClick={onClick}
-      className="flex items-center gap-1.5 text-slate-400 hover:text-slate-700 transition text-sm font-semibold mb-6"
-    >
-      <ArrowLeft size={16} /> Back
+    <button onClick={onClick}
+      style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: "Georgia, serif", fontWeight: 700, fontSize: "0.8rem", color: T.muted, background: "none", border: "none", cursor: "pointer", marginBottom: 20 }}>
+      <ArrowLeft size={15} /> Back
     </button>
   );
 }
@@ -64,103 +78,82 @@ export default function CheckInPage() {
   const router = useRouter();
 
   const [loadingUser, setLoadingUser] = useState(true);
-  const [alreadyDone,  setAlreadyDone]  = useState(false);
-  const [name,        setName]        = useState("Friend");
-  const [step,        setStep]        = useState(0);   // 0=mood 1=craving 2=drank 3=success 4=reflect
+  const [alreadyDone, setAlreadyDone] = useState(false);
+  const [name,        setName]        = useState("Seeker");
+  const [step,        setStep]        = useState(0);
   const [mood,        setMood]        = useState(null);
   const [craving,     setCraving]     = useState(3);
   const [saving,      setSaving]      = useState(false);
 
-  // ── Auth + check if already done today ───────────────────────────────────
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) { router.push("/login"); return; }
-
       try {
-        // Load name
         const userSnap = await getDoc(doc(db, "users", user.uid));
         if (userSnap.exists() && userSnap.data().name) {
           setName(userSnap.data().name.split(" ")[0]);
         }
-
-        // Check if already checked in today
         const today = new Date().toISOString().split("T")[0];
         const logSnap = await getDoc(doc(db, "users", user.uid, "checkins", today));
         if (logSnap.exists()) setAlreadyDone(true);
-      } catch (err) {
-        console.error("Check-in load error:", err);
-      } finally {
-        setLoadingUser(false);
-      }
+      } catch (err) { console.error("Check-in load error:", err); }
+      finally { setLoadingUser(false); }
     });
     return () => unsub();
   }, [router]);
 
-  // ── Save check-in + update XP & streak ───────────────────────────────────
   const handleFinish = async (didDrink) => {
     const user = auth.currentUser;
     if (!user) return;
-
     setSaving(true);
     try {
       const today = new Date().toISOString().split("T")[0];
-
-      // 1. Save to checkins (matches dashboard query)
       await setDoc(doc(db, "users", user.uid, "checkins", today), {
-        mood,
-        cravings: craving,   // field name matches dashboard chart
-        drank: didDrink,
-        date: serverTimestamp(),
-        createdAt: serverTimestamp(),
+        mood, cravings: craving, drank: didDrink,
+        date: serverTimestamp(), createdAt: serverTimestamp(),
       });
-
-      // 2. Update user stats
-      const xpEarned = didDrink ? 10 : 50; // less XP if they drank
+      const xpEarned = didDrink ? 10 : 50;
       await updateDoc(doc(db, "users", user.uid), {
-        xp:            increment(xpEarned),
-        currentStreak: didDrink ? 0 : increment(1),
-        lastCheckin:   serverTimestamp(),
-        // Update longest streak is handled server-side ideally,
-        // but we do a best-effort client update:
+        xp:              increment(xpEarned),
+        currentStreak:   didDrink ? 0 : increment(1),
+        lastCheckin:     serverTimestamp(),
         caloriesAvoided: didDrink ? increment(0) : increment(150),
       });
-
       setStep(didDrink ? 4 : 3);
-    } catch (err) {
-      console.error("Check-in save error:", err);
-    } finally {
-      setSaving(false);
-    }
+    } catch (err) { console.error("Check-in save error:", err); }
+    finally { setSaving(false); }
   };
 
   // ── Loading ───────────────────────────────────────────────────────────────
   if (loadingUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-full border-4 border-blue-600 border-t-transparent animate-spin" />
-          <p className="text-sm font-semibold text-slate-400">Loading...</p>
+      <div style={{ background: T.pageBg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 38, height: 38, border: "3px solid #b8954a", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+          <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.82rem", fontStyle: "italic" }}>Loading your quest...</p>
         </div>
       </div>
     );
   }
 
-  // ── Already checked in ────────────────────────────────────────────────────
+  // ── Already done ──────────────────────────────────────────────────────────
   if (alreadyDone) {
     return (
       <>
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex flex-col items-center justify-center px-5 pb-32">
-          <div className="w-full max-w-md text-center">
-            <div className="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 size={40} className="text-emerald-500" />
+        <div style={{ background: T.pageBg, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px 20px 120px" }}>
+          {/* Glow */}
+          <div className="fixed inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 35% at 50% 0%, rgba(255,180,60,0.13), transparent 65%)" }} />
+          <div style={{ width: "100%", maxWidth: 440, textAlign: "center", position: "relative", zIndex: 1 }}>
+            <div style={{ width: 80, height: 80, background: "rgba(122,171,106,0.2)", border: "2px solid rgba(122,171,106,0.4)", borderRadius: 24, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
+              <CheckCircle2 size={38} style={{ color: "#7aab6a" }} />
             </div>
-            <h2 className="text-2xl font-black text-slate-900 mb-2">Already checked in!</h2>
-            <p className="text-slate-400 text-sm mb-8">You've completed today's check-in. Come back tomorrow to keep your streak alive! 🔥</p>
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black active:scale-95 transition-transform"
-            >
-              Back to Dashboard
+            <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.5rem", marginBottom: 10 }}>Quest Already Complete!</h2>
+            <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.85rem", fontStyle: "italic", lineHeight: 1.7, marginBottom: 28 }}>You've completed today's vigil. Return at dawn to keep your streak alive, Seeker. 🔥</p>
+            <button onClick={() => router.push("/dashboard")}
+              className="transition-all active:scale-[0.97]"
+              style={{ width: "100%", background: T.questBtn, border: "2px solid #1478b0", borderRadius: 24, padding: "14px 20px", boxShadow: T.questShadow, color: "#fff", fontWeight: 900, fontFamily: "Georgia, serif", fontSize: "0.85rem", letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer" }}>
+              Back to the Keep
             </button>
           </div>
         </div>
@@ -171,259 +164,262 @@ export default function CheckInPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex flex-col px-5 pt-10 pb-32 max-w-lg mx-auto">
-        <AnimatePresence mode="wait">
+      <style>{`
+        @keyframes pulse{from{opacity:.3;transform:scale(1)}to{opacity:1;transform:scale(1.4)}}
+        input[type=range]{-webkit-appearance:none;appearance:none}
+        input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#d4b483,#a07840);border:2px solid #8a6030;box-shadow:0 2px 6px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,230,160,0.4);cursor:pointer}
+        input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#d4b483,#a07840);border:2px solid #8a6030;box-shadow:0 2px 6px rgba(0,0,0,0.35);cursor:pointer}
+      `}</style>
 
-          {/* ── STEP 0: MOOD ── */}
-          {step === 0 && (
-            <motion.div
-              key="mood"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.22 }}
-              className="flex flex-col flex-1"
-            >
-              <ProgressBar step={1} />
+      <div style={{ background: T.pageBg, minHeight: "100vh", display: "flex", flexDirection: "column", padding: "32px 20px 120px", maxWidth: 480, margin: "0 auto" }}>
+        {/* Atmospheric glow */}
+        <div className="fixed inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 35% at 50% 0%, rgba(255,180,60,0.13), transparent 65%)" }} />
+        {/* Sparkles */}
+        <div className="fixed inset-0 pointer-events-none opacity-35">
+          {[{l:"6%",t:"10%"},{l:"88%",t:"16%"},{l:"15%",t:"78%"},{l:"82%",t:"70%"}].map((p,i)=>(
+            <div key={i} className="absolute rounded-full"
+              style={{ left:p.l, top:p.t, width:5, height:5, background:i%2===0?"rgba(255,230,140,0.7)":"rgba(180,240,200,0.6)",
+                animation:`pulse ${2.2+i*0.4}s ease-in-out infinite alternate`, animationDelay:`${i*0.35}s` }} />
+          ))}
+        </div>
 
-              <div className="mb-8">
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Step 1 of 3</p>
-                <h2 className="text-2xl font-black text-slate-900 leading-snug">
-                  Hey {name}! 👋<br />How are you feeling?
-                </h2>
-              </div>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative", zIndex: 1 }}>
+          <AnimatePresence mode="wait">
 
-              <div className="flex flex-col gap-3">
-                {EMOTIONS.map((e) => {
-                  const Icon = e.icon;
-                  return (
-                    <motion.button
-                      key={e.value}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={() => { setMood(e.value); setStep(1); }}
-                      className={`flex items-center gap-4 p-4 rounded-2xl border-2 bg-white transition-all text-left ${
-                        mood === e.value ? `${e.bg} border-current` : "border-slate-100 hover:border-slate-200"
-                      }`}
-                    >
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${e.bg} shrink-0`}>
-                        <Icon size={28} className={e.color} />
+            {/* ── STEP 0: MOOD ── */}
+            {step === 0 && (
+              <motion.div key="mood"
+                initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}
+                transition={{ duration: 0.22 }}
+                style={{ display: "flex", flexDirection: "column", flex: 1 }}
+              >
+                <ProgressBar step={1} />
+                <div style={{ marginBottom: 24 }}>
+                  <p style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 6 }}>Vigil · Step 1 of 3</p>
+                  <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.4rem", lineHeight: 1.35 }}>
+                    Hail, {name}! 👋<br />How fares your spirit?
+                  </h2>
+                  <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.78rem", fontStyle: "italic", marginTop: 5 }}>ᚠ ᚢ ᚦ — speak truthfully, Seeker</p>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {EMOTIONS.map(e => {
+                    const Icon = e.icon;
+                    const selected = mood === e.value;
+                    return (
+                      <motion.button key={e.value} whileTap={{ scale: 0.97 }}
+                        onClick={() => { setMood(e.value); setStep(1); }}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: 16,
+                          background: selected ? e.accent : T.cardBg,
+                          border: `2px solid ${selected ? e.border : T.cardBorder}`,
+                          boxShadow: selected ? `0 0 18px ${e.accent}` : "none",
+                          cursor: "pointer", textAlign: "left",
+                          transition: "all 0.18s",
+                        }}>
+                        <div style={{ width: 48, height: 48, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", background: e.accent, border: `1.5px solid ${e.border}`, flexShrink: 0 }}>
+                          <span style={{ fontSize: "1.5rem" }}>{e.glyph}</span>
+                        </div>
+                        <span style={{ fontFamily: "Georgia, serif", fontWeight: 700, color: selected ? e.color : T.goldLight, fontSize: "1rem" }}>{e.label}</span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+
+            {/* ── STEP 1: CRAVING ── */}
+            {step === 1 && (
+              <motion.div key="craving"
+                initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}
+                transition={{ duration: 0.22 }}
+                style={{ display: "flex", flexDirection: "column", flex: 1 }}
+              >
+                <ProgressBar step={2} />
+                <BackButton onClick={() => setStep(0)} />
+
+                <div style={{ marginBottom: 24 }}>
+                  <p style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 6 }}>Vigil · Step 2 of 3</p>
+                  <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.35rem", lineHeight: 1.35 }}>How strong is the temptation calling to you?</h2>
+                </div>
+
+                {/* Craving display — parchment orb */}
+                <div style={{ background: T.cardBg, border: `1.5px solid ${T.cardBorder}`, borderRadius: 20, padding: "28px 20px", textAlign: "center", marginBottom: 20, boxShadow: `0 0 28px ${CRAVING_COLORS[craving]}22`, transition: "box-shadow 0.3s" }}>
+                  <div style={{ fontFamily: "Georgia, serif", fontWeight: 900, fontSize: "3.5rem", lineHeight: 1, color: CRAVING_COLORS[craving], marginBottom: 5, textShadow: `0 0 20px ${CRAVING_COLORS[craving]}44`, transition: "color 0.3s" }}>{craving}</div>
+                  <div style={{ fontFamily: "Georgia, serif", fontWeight: 700, color: CRAVING_COLORS[craving], fontSize: "0.9rem", letterSpacing: "0.08em", transition: "color 0.3s" }}>{CRAVING_LABELS[craving]}</div>
+                </div>
+
+                {/* Slider */}
+                <div style={{ padding: "0 4px", marginBottom: 14 }}>
+                  <input type="range" min="1" max="5" step="1" value={craving}
+                    onChange={e => setCraving(Number(e.target.value))}
+                    style={{ width: "100%", height: 6, borderRadius: 99, outline: "none", cursor: "pointer",
+                      background: `linear-gradient(to right, ${CRAVING_COLORS[craving]} ${(craving - 1) * 25}%, rgba(200,160,74,0.18) ${(craving - 1) * 25}%)`,
+                      transition: "background 0.3s", border: "none", appearance: "none",
+                    }}
+                  />
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
+                    {CRAVING_LABELS.slice(1).map(l => (
+                      <span key={l} style={{ fontFamily: "Georgia, serif", fontSize: "0.58rem", color: T.muted, letterSpacing: "0.04em" }}>{l}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <button onClick={() => setStep(2)}
+                  className="transition-all active:scale-[0.97]"
+                  style={{ width: "100%", background: T.questBtn, border: "2px solid #1478b0", borderRadius: 24, padding: "14px 20px", boxShadow: T.questShadow, color: "#fff", fontWeight: 900, fontFamily: "Georgia, serif", fontSize: "0.85rem", letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer", marginTop: "auto" }}>
+                  Onward →
+                </button>
+              </motion.div>
+            )}
+
+            {/* ── STEP 2: DID YOU DRINK ── */}
+            {step === 2 && (
+              <motion.div key="drink"
+                initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}
+                transition={{ duration: 0.22 }}
+                style={{ display: "flex", flexDirection: "column", flex: 1 }}
+              >
+                <ProgressBar step={3} />
+                <BackButton onClick={() => setStep(1)} />
+
+                <div style={{ marginBottom: 24 }}>
+                  <p style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 6 }}>Vigil · Step 3 of 3</p>
+                  <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.35rem", lineHeight: 1.35 }}>Did you drink alcohol today?</h2>
+                  <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.78rem", fontStyle: "italic", marginTop: 6, lineHeight: 1.6 }}>Speak truthfully — this helps you track your legend accurately.</p>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 4 }}>
+                  {/* Sober — emerald */}
+                  <motion.button whileTap={{ scale: 0.97 }} onClick={() => handleFinish(false)} disabled={saving}
+                    style={{
+                      width: "100%", background: "rgba(122,171,106,0.15)", border: "2px solid rgba(122,171,106,0.45)",
+                      padding: "22px 16px", borderRadius: 20, display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                      cursor: "pointer", boxShadow: "0 0 20px rgba(122,171,106,0.15)",
+                      opacity: saving ? 0.6 : 1, transition: "all 0.18s",
+                    }}>
+                    <CheckCircle2 size={36} style={{ color: "#7aab6a" }} />
+                    <span style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: "#7aab6a", fontSize: "1.05rem" }}>⚔️ Nay — I held the line!</span>
+                    <span style={{ fontFamily: "Georgia, serif", fontSize: "0.72rem", color: "#7aab6a", opacity: 0.8, fontStyle: "italic" }}>+50 XP · Streak continues</span>
+                  </motion.button>
+
+                  {/* Drank — rose */}
+                  <motion.button whileTap={{ scale: 0.97 }} onClick={() => handleFinish(true)} disabled={saving}
+                    style={{
+                      width: "100%", background: "rgba(192,96,96,0.12)", border: "2px solid rgba(192,96,96,0.35)",
+                      padding: "22px 16px", borderRadius: 20, display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                      cursor: "pointer", opacity: saving ? 0.6 : 1, transition: "all 0.18s",
+                    }}>
+                    <XCircle size={36} style={{ color: "#c06060" }} />
+                    <span style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: "#c06060", fontSize: "1.05rem" }}>Aye — I had a drink</span>
+                    <span style={{ fontFamily: "Georgia, serif", fontSize: "0.72rem", color: "#c06060", opacity: 0.8, fontStyle: "italic" }}>+10 XP · It's okay, keep going</span>
+                  </motion.button>
+                </div>
+
+                {saving && (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 20 }}>
+                    <div style={{ width: 16, height: 16, border: "2px solid #b8954a", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                    <span style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.8rem", fontStyle: "italic" }}>Inscribing your vigil...</span>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {/* ── STEP 3: SUCCESS ── */}
+            {step === 3 && (
+              <motion.div key="success"
+                initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flex: 1, textAlign: "center" }}
+              >
+                <motion.div
+                  initial={{ scale: 0 }} animate={{ scale: 1 }}
+                  transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.1 }}
+                  style={{ width: 90, height: 90, background: "rgba(122,171,106,0.2)", border: "2px solid rgba(122,171,106,0.45)", borderRadius: 26, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 22, boxShadow: "0 0 32px rgba(122,171,106,0.3)" }}>
+                  <Flame size={46} style={{ color: "#7aab6a" }} />
+                </motion.div>
+
+                <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.7rem", marginBottom: 10 }}>Victory, Seeker! 🎉</h2>
+                <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.84rem", fontStyle: "italic", lineHeight: 1.75, marginBottom: 28, maxWidth: 300 }}>
+                  You held the line today. Every day sober is a rune carved into your legend.
+                </p>
+
+                {/* XP card */}
+                <div style={{ width: "100%", background: T.cardBg, border: `1.5px solid ${T.cardBorder}`, borderRadius: 18, padding: "18px 18px", marginBottom: 20, boxShadow: "inset 0 1px 0 rgba(255,220,130,0.05)" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ width: 40, height: 40, background: "rgba(200,160,74,0.18)", border: "1.5px solid rgba(200,160,74,0.3)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Star size={19} style={{ color: "#f0c840" }} fill="#f0c840" />
                       </div>
-                      <span className="font-bold text-slate-800 text-base">{e.label}</span>
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
-
-          {/* ── STEP 1: CRAVING ── */}
-          {step === 1 && (
-            <motion.div
-              key="craving"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.22 }}
-              className="flex flex-col flex-1"
-            >
-              <ProgressBar step={2} />
-              <BackButton onClick={() => setStep(0)} />
-
-              <div className="mb-8">
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Step 2 of 3</p>
-                <h2 className="text-2xl font-black text-slate-900">How strong is your craving right now?</h2>
-              </div>
-
-              {/* Craving display */}
-              <div className="bg-white rounded-3xl border border-slate-100 p-8 text-center mb-6 shadow-sm">
-                <div className={`text-5xl font-black mb-1 ${CRAVING_COLORS[craving]}`}>{craving}</div>
-                <div className={`text-sm font-bold ${CRAVING_COLORS[craving]}`}>{CRAVING_LABELS[craving]}</div>
-              </div>
-
-              {/* Slider */}
-              <div className="px-2 mb-4">
-                <input
-                  type="range"
-                  min="1"
-                  max="5"
-                  step="1"
-                  value={craving}
-                  onChange={(e) => setCraving(Number(e.target.value))}
-                  className="w-full h-2 rounded-full appearance-none cursor-pointer accent-blue-600"
-                  style={{ background: `linear-gradient(to right, #2563eb ${(craving - 1) * 25}%, #e2e8f0 ${(craving - 1) * 25}%)` }}
-                />
-                <div className="flex justify-between text-[10px] text-slate-400 font-semibold mt-2 px-0.5">
-                  {CRAVING_LABELS.slice(1).map((l) => <span key={l}>{l}</span>)}
-                </div>
-              </div>
-
-              <button
-                onClick={() => setStep(2)}
-                className="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white py-4 rounded-2xl font-black transition-all shadow-lg shadow-blue-200 mt-auto"
-              >
-                Next →
-              </button>
-            </motion.div>
-          )}
-
-          {/* ── STEP 2: DID YOU DRINK ── */}
-          {step === 2 && (
-            <motion.div
-              key="drink"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.22 }}
-              className="flex flex-col flex-1"
-            >
-              <ProgressBar step={3} />
-              <BackButton onClick={() => setStep(1)} />
-
-              <div className="mb-8">
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Step 3 of 3</p>
-                <h2 className="text-2xl font-black text-slate-900">Did you drink alcohol today?</h2>
-                <p className="text-sm text-slate-400 mt-2">Be honest — this helps you track your journey accurately.</p>
-              </div>
-
-              <div className="flex flex-col gap-4 mt-2">
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => handleFinish(false)}
-                  disabled={saving}
-                  className="w-full bg-emerald-50 border-2 border-emerald-200 py-6 rounded-3xl flex flex-col items-center gap-2 active:scale-95 transition-transform disabled:opacity-60"
-                >
-                  <CheckCircle2 size={36} className="text-emerald-500" />
-                  <span className="font-black text-emerald-700 text-lg">No, I stayed sober! 💪</span>
-                  <span className="text-xs text-emerald-600 font-semibold">+50 XP · Streak continues</span>
-                </motion.button>
-
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => handleFinish(true)}
-                  disabled={saving}
-                  className="w-full bg-rose-50 border-2 border-rose-200 py-6 rounded-3xl flex flex-col items-center gap-2 active:scale-95 transition-transform disabled:opacity-60"
-                >
-                  <XCircle size={36} className="text-rose-400" />
-                  <span className="font-black text-rose-700 text-lg">Yes, I had a drink</span>
-                  <span className="text-xs text-rose-500 font-semibold">+10 XP · It's okay, keep going</span>
-                </motion.button>
-              </div>
-
-              {saving && (
-                <div className="flex items-center justify-center gap-2 mt-6 text-slate-400 text-sm font-semibold">
-                  <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                  Saving your check-in...
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {/* ── STEP 3: SUCCESS ── */}
-          {step === 3 && (
-            <motion.div
-              key="success"
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center justify-center flex-1 text-center"
-            >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.1 }}
-                className="w-24 h-24 bg-emerald-100 rounded-3xl flex items-center justify-center mb-6"
-              >
-                <Flame size={48} className="text-emerald-500" />
-              </motion.div>
-
-              <h2 className="text-3xl font-black text-slate-900 mb-2">Incredible! 🎉</h2>
-              <p className="text-slate-400 text-sm mb-8 max-w-xs">
-                You stayed sober today. Every day counts — you're building something amazing.
-              </p>
-
-              {/* XP earned card */}
-              <div className="w-full bg-white rounded-3xl border border-slate-100 p-6 shadow-sm mb-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
-                      <Star size={20} className="text-yellow-500" />
+                      <div style={{ textAlign: "left" }}>
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: "0.6rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.1em" }}>XP Earned</p>
+                        <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.95rem" }}>+50 XP</p>
+                      </div>
                     </div>
-                    <div className="text-left">
-                      <p className="text-xs text-slate-400 font-semibold uppercase">XP Earned</p>
-                      <p className="font-black text-slate-900">+50 XP</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
-                      <Flame size={20} className="text-orange-500" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-xs text-slate-400 font-semibold uppercase">Streak</p>
-                      <p className="font-black text-slate-900">+1 Day 🔥</p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ width: 40, height: 40, background: "rgba(192,128,64,0.18)", border: "1.5px solid rgba(192,128,64,0.3)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Flame size={19} style={{ color: "#c08040" }} />
+                      </div>
+                      <div style={{ textAlign: "left" }}>
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: "0.6rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.1em" }}>Streak</p>
+                        <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.95rem" }}>+1 Day 🔥</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <button
-                onClick={() => router.push("/dashboard")}
-                className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black active:scale-95 transition-transform shadow-lg shadow-blue-200"
-              >
-                Back to Dashboard
-              </button>
-            </motion.div>
-          )}
-
-          {/* ── STEP 4: REFLECT (drank) ── */}
-          {step === 4 && (
-            <motion.div
-              key="reflect"
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center justify-center flex-1 text-center"
-            >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.1 }}
-                className="w-24 h-24 bg-amber-100 rounded-3xl flex items-center justify-center mb-6"
-              >
-                <Heart size={48} className="text-amber-500" />
+                <button onClick={() => router.push("/dashboard")}
+                  className="transition-all active:scale-[0.97]"
+                  style={{ width: "100%", background: T.questBtn, border: "2px solid #1478b0", borderRadius: 24, padding: "14px 20px", boxShadow: T.questShadow, color: "#fff", fontWeight: 900, fontFamily: "Georgia, serif", fontSize: "0.85rem", letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer" }}>
+                  Return to the Keep
+                </button>
               </motion.div>
+            )}
 
-              <h2 className="text-3xl font-black text-slate-900 mb-2">It's okay 💛</h2>
-              <p className="text-slate-400 text-sm mb-8 max-w-xs">
-                Recovery isn't a straight line. The fact that you checked in means you're still trying — and that matters.
-              </p>
+            {/* ── STEP 4: REFLECT (drank) ── */}
+            {step === 4 && (
+              <motion.div key="reflect"
+                initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flex: 1, textAlign: "center" }}
+              >
+                <motion.div
+                  initial={{ scale: 0 }} animate={{ scale: 1 }}
+                  transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.1 }}
+                  style={{ width: 90, height: 90, background: "rgba(200,160,74,0.2)", border: "2px solid rgba(200,160,74,0.4)", borderRadius: 26, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 22, boxShadow: "0 0 32px rgba(200,160,74,0.25)" }}>
+                  <Heart size={46} style={{ color: "#c8a060" }} />
+                </motion.div>
 
-              {/* Tip card */}
-              <div className="w-full bg-amber-50 border border-amber-200 rounded-3xl p-5 mb-6 text-left flex gap-3">
-                <AlertTriangle size={20} className="text-amber-500 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold text-amber-800 text-sm mb-1">Quick tip</p>
-                  <p className="text-xs text-amber-700">
-                    Try our CBT exercises or reach out in the community — you don't have to face this alone.
-                  </p>
+                <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.7rem", marginBottom: 10 }}>It's Okay, Seeker 💛</h2>
+                <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.84rem", fontStyle: "italic", lineHeight: 1.75, marginBottom: 24, maxWidth: 300 }}>
+                  Recovery is no straight road. The fact you checked in means you're still on the path — and that matters greatly.
+                </p>
+
+                {/* Tip — parchment */}
+                <div style={{ width: "100%", background: T.parchment, border: "2px solid #b8954a", borderRadius: 16, padding: "14px 16px", marginBottom: 22, textAlign: "left", display: "flex", gap: 10, boxShadow: "inset 0 2px 6px rgba(0,0,0,0.08)" }}>
+                  <AlertTriangle size={18} style={{ color: "#b8954a", flexShrink: 0, marginTop: 2 }} />
+                  <div>
+                    <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.text, fontSize: "0.82rem", marginBottom: 4 }}>Sage's Counsel</p>
+                    <p style={{ fontFamily: "Georgia, serif", fontSize: "0.75rem", color: T.text, lineHeight: 1.65 }}>
+                      Try our CBT exercises or speak in the fellowship — you need not face this alone, Seeker.
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-3 w-full">
-                <button
-                  onClick={() => router.push("/cbt")}
-                  className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black active:scale-95 transition-transform"
-                >
-                  Try a CBT Exercise
-                </button>
-                <button
-                  onClick={() => router.push("/dashboard")}
-                  className="w-full bg-white border border-slate-200 text-slate-700 py-4 rounded-2xl font-black active:scale-95 transition-transform"
-                >
-                  Back to Dashboard
-                </button>
-              </div>
-            </motion.div>
-          )}
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%" }}>
+                  <button onClick={() => router.push("/cbt")}
+                    className="transition-all active:scale-[0.97]"
+                    style={{ width: "100%", background: T.woodLight, border: `2px solid ${T.btnBorder}`, borderRadius: 24, padding: "13px 20px", boxShadow: T.btnShadow, color: T.text, fontWeight: 900, fontFamily: "Georgia, serif", fontSize: "0.82rem", letterSpacing: "0.08em", textTransform: "uppercase", cursor: "pointer" }}>
+                    Try a CBT Exercise
+                  </button>
+                  <button onClick={() => router.push("/dashboard")}
+                    style={{ width: "100%", background: "rgba(200,160,74,0.08)", border: "1.5px solid rgba(200,160,74,0.22)", borderRadius: 24, padding: "13px 20px", color: T.muted, fontWeight: 700, fontFamily: "Georgia, serif", fontSize: "0.82rem", cursor: "pointer" }}>
+                    Return to the Keep
+                  </button>
+                </div>
+              </motion.div>
+            )}
 
-        </AnimatePresence>
+          </AnimatePresence>
+        </div>
       </div>
 
       <BottomNav />

@@ -13,30 +13,55 @@ import {
 import { toast, Toaster } from "sonner";
 import BottomNav from "../components/BottomNav";
 
+// ─── Theme tokens ─────────────────────────────────────────────────────────────
+const T = {
+  gold:       "#c8a060",
+  goldLight:  "#f7e0bb",
+  muted:      "#a07848",
+  text:       "#3d2410",
+  parchment:  "linear-gradient(180deg, #f5e8c8 0%, #ede0b4 100%)",
+  cardBg:     "linear-gradient(135deg, rgba(90,52,24,0.72) 0%, rgba(58,32,16,0.82) 100%)",
+  cardBorder: "rgba(200,160,74,0.28)",
+  pageBg:     "linear-gradient(160deg, #2d1a0c 0%, #3d2210 40%, #2a1808 100%)",
+  questBtn:   "linear-gradient(180deg, #5ecef5 0%, #38b6f0 40%, #1a96d8 100%)",
+  questShadow:"0 4px 0 #0e5c8a, 0 6px 20px rgba(30,140,210,0.4), inset 0 1px 0 rgba(255,255,255,0.4)",
+  woodLight:  "linear-gradient(180deg, #d4b483 0%, #b8955c 50%, #a07840 100%)",
+  btnBorder:  "#8a6030",
+  btnShadow:  "0 3px 0 #6a4820, 0 4px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,230,160,0.4)",
+};
+
 // ─── Helplines ────────────────────────────────────────────────────────────────
 const HELPLINES = [
-  { name: "iCall",            number: "9152987821", desc: "Mental health support",    color: "bg-blue-50   border-blue-200   text-blue-700"   },
-  { name: "Vandrevala Fdn",   number: "18602662345", desc: "24/7 crisis helpline",    color: "bg-purple-50 border-purple-200 text-purple-700" },
-  { name: "AASRA",            number: "9820466627",  desc: "Emotional support",        color: "bg-rose-50   border-rose-200   text-rose-700"   },
+  { name: "iCall",          number: "9152987821",  desc: "Mental health support", color: "#6ab4d8", bg: "rgba(106,180,216,0.15)", border: "rgba(106,180,216,0.4)" },
+  { name: "Vandrevala Fdn", number: "18602662345", desc: "24/7 crisis helpline",  color: "#9a78c0", bg: "rgba(154,120,192,0.15)", border: "rgba(154,120,192,0.4)" },
+  { name: "AASRA",          number: "9820466627",  desc: "Emotional support",      color: "#c06060", bg: "rgba(192,96,96,0.15)",  border: "rgba(192,96,96,0.4)"  },
 ];
 
 // ─── Grounding steps ──────────────────────────────────────────────────────────
 const GROUND_STEPS = [
-  { n: 5, sense: "SEE",   icon: Eye,    color: "from-sky-400 to-blue-500",       prompt: "Name 5 things you can see right now.",        hint: "Look slowly around the room — a colour, shape, object, shadow, texture." },
-  { n: 4, sense: "TOUCH", icon: Hand,   color: "from-emerald-400 to-teal-500",   prompt: "Notice 4 things you can physically feel.",   hint: "Your feet on the floor, clothes on your skin, temperature of the air, the chair under you." },
-  { n: 3, sense: "HEAR",  icon: Ear,    color: "from-violet-400 to-purple-500",  prompt: "Listen for 3 sounds around you.",             hint: "Traffic outside, your own breathing, a distant voice, a humming appliance." },
-  { n: 2, sense: "SMELL", icon: Wind,   color: "from-orange-400 to-amber-500",   prompt: "Notice 2 things you can smell.",              hint: "The air, your clothes, coffee, soap — or just take 2 slow deep breaths." },
-  { n: 1, sense: "TASTE", icon: Smile,  color: "from-rose-400 to-pink-500",      prompt: "Name 1 thing you can taste.",                 hint: "Drink some water, notice the taste of your mouth — bring yourself fully here." },
+  { n: 5, sense: "SEE",   icon: Eye,   color: "#6ab4d8", glyph: "👁️",  prompt: "Name 5 things you can see right now.",       hint: "Look slowly around the room — a colour, shape, object, shadow, texture." },
+  { n: 4, sense: "TOUCH", icon: Hand,  color: "#7aab6a", glyph: "🤲",  prompt: "Notice 4 things you can physically feel.",  hint: "Your feet on the floor, clothes on your skin, temperature of the air, the chair under you." },
+  { n: 3, sense: "HEAR",  icon: Ear,   color: "#9a78c0", glyph: "👂",  prompt: "Listen for 3 sounds around you.",            hint: "Traffic outside, your own breathing, a distant voice, a humming appliance." },
+  { n: 2, sense: "SMELL", icon: Wind,  color: "#c8a060", glyph: "🌬️", prompt: "Notice 2 things you can smell.",             hint: "The air, your clothes, coffee, soap — or just take 2 slow deep breaths." },
+  { n: 1, sense: "TASTE", icon: Smile, color: "#c08060", glyph: "👅",  prompt: "Name 1 thing you can taste.",                hint: "Drink some water, notice the taste of your mouth — bring yourself fully here." },
 ];
 
 // ─── Breathing phases ─────────────────────────────────────────────────────────
 const BREATH_PHASES = [
-  { label: "Inhale",  duration: 4, grad: "from-sky-400 to-blue-500"      },
-  { label: "Hold",    duration: 4, grad: "from-violet-400 to-purple-500" },
-  { label: "Exhale",  duration: 4, grad: "from-emerald-400 to-teal-500"  },
+  { label: "Inhale",  duration: 4, color: "#6ab4d8" },
+  { label: "Hold",    duration: 4, color: "#9a78c0" },
+  { label: "Exhale",  duration: 4, color: "#7aab6a" },
 ];
 
-// ─── Box breathing component ──────────────────────────────────────────────────
+// ─── Tools ────────────────────────────────────────────────────────────────────
+const TOOLS = [
+  { id: "breathe",  label: "Box Breathing",       desc: "Reset in 4 minutes",         emoji: "🫁", color: "#6ab4d8", border: "rgba(106,180,216,0.35)", bg: "rgba(106,180,216,0.12)" },
+  { id: "ground",   label: "5-4-3-2-1 Grounding", desc: "Come back to now",            emoji: "🌿", color: "#7aab6a", border: "rgba(122,171,106,0.35)", bg: "rgba(122,171,106,0.12)" },
+  { id: "delay",    label: "15-Min Timer",         desc: "Ride out the craving",        emoji: "⏱️", color: "#9a78c0", border: "rgba(154,120,192,0.35)", bg: "rgba(154,120,192,0.12)" },
+  { id: "helpline", label: "Call a Helpline",      desc: "You don't have to face this alone", emoji: "📞", color: "#c06060", border: "rgba(192,96,96,0.35)", bg: "rgba(192,96,96,0.12)" },
+];
+
+// ─── Box Breathing ────────────────────────────────────────────────────────────
 function BoxBreathing({ onDone }) {
   const [phaseIdx, setPhaseIdx] = useState(0);
   const [timeLeft, setTimeLeft] = useState(BREATH_PHASES[0].duration);
@@ -69,42 +94,40 @@ function BoxBreathing({ onDone }) {
     : 1 : 0.55;
 
   return (
-    <div className="flex flex-col items-center gap-5 py-2">
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
       {/* Cycle dots */}
-      <div className="flex gap-2">
+      <div style={{ display: "flex", gap: 8 }}>
         {[0,1,2,3].map(i => (
-          <div key={i} className={`w-2.5 h-2.5 rounded-full transition-all duration-500 ${i < cycles ? "bg-emerald-500" : "bg-slate-200"}`} />
+          <div key={i} style={{ width: 12, height: 12, borderRadius: "50%", background: i < cycles ? "#7aab6a" : "rgba(200,160,74,0.18)", border: "1.5px solid rgba(200,160,74,0.3)", transition: "all 0.5s" }} />
         ))}
       </div>
 
-      {/* Animated orb */}
-      <div className="relative w-44 h-44 flex items-center justify-center">
+      {/* Orb */}
+      <div style={{ position: "relative", width: 168, height: 168, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <motion.div animate={{ scale }} transition={{ duration: 0.8, ease: "easeInOut" }}
-          className={`absolute inset-0 rounded-full bg-gradient-to-br ${running ? phase.grad : "from-slate-200 to-slate-300"} opacity-15`} />
+          style={{ position: "absolute", inset: 0, borderRadius: "50%", background: running ? `radial-gradient(circle, ${phase.color}40, transparent)` : "rgba(200,160,74,0.08)" }} />
         <motion.div animate={{ scale: scale * 0.68 }} transition={{ duration: 0.8, ease: "easeInOut" }}
-          className={`w-28 h-28 rounded-full bg-gradient-to-br ${running ? phase.grad : "from-slate-200 to-slate-300"} flex items-center justify-center shadow-2xl`}>
-          <span className="text-white font-black text-3xl tabular-nums">{running ? timeLeft : "·"}</span>
+          style={{ width: 100, height: 100, borderRadius: "50%", background: running ? `linear-gradient(135deg, ${phase.color}, ${phase.color}80)` : "rgba(200,160,74,0.2)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: running ? `0 0 32px ${phase.color}44` : "none", border: `2px solid ${running ? phase.color : "rgba(200,160,74,0.3)"}44` }}>
+          <span style={{ fontFamily: "Georgia, serif", fontWeight: 900, fontSize: "1.8rem", color: running ? "#fff" : T.gold }}>{running ? timeLeft : "·"}</span>
         </motion.div>
-        {/* Ring label */}
         {running && (
-          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-white border border-slate-100 px-3 py-1 rounded-full shadow text-xs font-black text-slate-700 whitespace-nowrap">
-            {phase.label}
+          <div style={{ position: "absolute", bottom: -4, left: "50%", transform: "translateX(-50%)", background: "rgba(200,160,74,0.15)", border: "1px solid rgba(200,160,74,0.3)", padding: "3px 12px", borderRadius: 99, whiteSpace: "nowrap" }}>
+            <span style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.gold, fontSize: "0.7rem", letterSpacing: "0.08em" }}>{phase.label}</span>
           </div>
         )}
       </div>
 
       {!running && cycles < 4 && (
         <button onClick={() => { setRunning(true); setPhaseIdx(0); setTimeLeft(BREATH_PHASES[0].duration); }}
-          className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-8 py-3.5 rounded-2xl font-black shadow-lg shadow-blue-200 active:scale-95 transition-all">
-          {cycles === 0 ? "Start Breathing" : "Continue"}
+          className="transition-all active:scale-[0.97]"
+          style={{ background: T.questBtn, border: "2px solid #1478b0", borderRadius: 24, padding: "12px 28px", boxShadow: T.questShadow, color: "#fff", fontWeight: 900, fontFamily: "Georgia, serif", fontSize: "0.85rem", letterSpacing: "0.08em", cursor: "pointer" }}>
+          {cycles === 0 ? "Begin Breathing" : "Continue"}
         </button>
       )}
 
-      {!running && (
-        <p className="text-xs text-slate-400 text-center">
-          {cycles >= 4 ? "✅ All 4 cycles complete! Well done." : "4 sec inhale · 4 sec hold · 4 sec exhale · 4 cycles"}
-        </p>
-      )}
+      <p style={{ fontFamily: "Georgia, serif", fontSize: "0.72rem", color: T.muted, fontStyle: "italic", textAlign: "center" }}>
+        {cycles >= 4 ? "✅ All 4 cycles complete! Well done, Seeker." : "4s inhale · 4s hold · 4s exhale · 4 cycles"}
+      </p>
     </div>
   );
 }
@@ -113,80 +136,80 @@ function BoxBreathing({ onDone }) {
 function Grounding({ onDone }) {
   const [idx,    setIdx]    = useState(0);
   const [inputs, setInputs] = useState(Array(5).fill(""));
-
-  const step  = GROUND_STEPS[idx];
-  const Icon  = step.icon;
-  const done  = idx >= GROUND_STEPS.length;
+  const done = idx >= GROUND_STEPS.length;
 
   if (done) {
     return (
       <motion.div initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center gap-5 text-center">
-        <div className="text-6xl">🌿</div>
-        <h3 className="text-2xl font-black text-slate-900">You're grounded</h3>
-        <p className="text-slate-400 text-sm max-w-xs">
-          You just brought yourself back to the present moment. The craving doesn't control you.
+        style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, textAlign: "center" }}>
+        <div style={{ fontSize: "3.5rem" }}>🌿</div>
+        <h3 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.4rem" }}>You are grounded, Seeker</h3>
+        <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.82rem", fontStyle: "italic", lineHeight: 1.7, maxWidth: 280 }}>
+          You just brought yourself back to the present. The craving does not control you.
         </p>
         <button onClick={onDone}
-          className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black active:scale-95 transition-transform shadow-lg shadow-emerald-200 flex items-center justify-center gap-2">
-          <CheckCircle2 size={17} /> I Feel Calmer +50 XP
+          className="transition-all active:scale-[0.97]"
+          style={{ width: "100%", background: T.questBtn, border: "2px solid #1478b0", borderRadius: 24, padding: "14px 20px", boxShadow: T.questShadow, color: "#fff", fontWeight: 900, fontFamily: "Georgia, serif", fontSize: "0.82rem", letterSpacing: "0.08em", textTransform: "uppercase", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+          <CheckCircle2 size={16} /> I Feel Calmer +50 XP
         </button>
       </motion.div>
     );
   }
 
+  const step = GROUND_STEPS[idx];
   return (
-    <div className="space-y-5">
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {/* Step progress */}
-      <div className="flex gap-1.5">
+      <div style={{ display: "flex", gap: 6 }}>
         {GROUND_STEPS.map((_, i) => (
-          <div key={i} className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${i <= idx ? "bg-emerald-500" : "bg-slate-100"}`} />
+          <div key={i} style={{ flex: 1, height: 5, borderRadius: 99, background: i <= idx ? step.color : "rgba(200,160,74,0.14)", transition: "background 0.5s", border: "1px solid rgba(200,160,74,0.15)" }} />
         ))}
       </div>
 
       <AnimatePresence mode="wait">
         <motion.div key={idx} initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }}
-          className={`rounded-3xl bg-gradient-to-br ${step.color} p-6 text-white`}>
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-              <Icon size={20} />
+          style={{ borderRadius: 18, background: `linear-gradient(135deg, ${step.color}25, ${step.color}10)`, border: `2px solid ${step.color}50`, padding: "18px 16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+            <div style={{ width: 44, height: 44, background: `${step.color}25`, border: `1.5px solid ${step.color}50`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem" }}>
+              {step.glyph}
             </div>
             <div>
-              <p className="text-white/70 text-xs font-bold uppercase tracking-widest">{step.sense}</p>
-              <p className="font-black text-lg leading-tight">{step.n} things</p>
+              <p style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: step.color, textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 700 }}>{step.sense}</p>
+              <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1rem" }}>{step.n} things</p>
             </div>
           </div>
-          <p className="font-semibold text-sm mb-1">{step.prompt}</p>
-          <p className="text-white/70 text-xs leading-relaxed">{step.hint}</p>
+          <p style={{ fontFamily: "Georgia, serif", fontWeight: 700, color: T.goldLight, fontSize: "0.85rem", marginBottom: 5 }}>{step.prompt}</p>
+          <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.75rem", lineHeight: 1.65, fontStyle: "italic" }}>{step.hint}</p>
         </motion.div>
       </AnimatePresence>
 
-      {/* Input */}
-      <textarea
-        rows={2}
-        placeholder={`Type what you ${step.sense.toLowerCase()}...`}
+      <textarea rows={2}
+        placeholder={`What you ${step.sense.toLowerCase()}...`}
         value={inputs[idx]}
         onChange={e => setInputs(prev => { const n = [...prev]; n[idx] = e.target.value; return n; })}
-        className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 resize-none transition"
+        style={{ width: "100%", background: T.parchment, border: `2px solid #b8954a`, borderRadius: 12, padding: "12px 14px", fontSize: "0.85rem", color: T.text, fontFamily: "Georgia, serif", outline: "none", resize: "none", boxSizing: "border-box", boxShadow: "inset 0 2px 6px rgba(0,0,0,0.1)" }}
+        onFocus={e => (e.target.style.borderColor = step.color)}
+        onBlur={e => (e.target.style.borderColor = "#b8954a")}
       />
 
-      <div className="flex gap-3">
+      <div style={{ display: "flex", gap: 10 }}>
         {idx > 0 && (
           <button onClick={() => setIdx(i => i - 1)}
-            className="flex-1 py-3.5 rounded-2xl font-bold text-slate-600 bg-slate-100 active:scale-95 transition-transform text-sm flex items-center justify-center gap-1">
-            <ChevronLeft size={15} /> Back
+            style={{ flex: 1, padding: "12px", borderRadius: 20, fontFamily: "Georgia, serif", fontWeight: 700, fontSize: "0.8rem", background: "rgba(200,160,74,0.1)", border: "1.5px solid rgba(200,160,74,0.22)", color: T.muted, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+            <ChevronLeft size={14} /> Back
           </button>
         )}
         <button onClick={() => setIdx(i => i + 1)}
-          className={`flex-1 py-3.5 rounded-2xl font-black text-white active:scale-95 transition-transform text-sm flex items-center justify-center gap-1 bg-gradient-to-r ${step.color} shadow-lg`}>
-          {idx < GROUND_STEPS.length - 1 ? <><span>Next</span><ChevronRight size={15} /></> : <><CheckCircle2 size={15} /><span>Done</span></>}
+          className="transition-all active:scale-[0.97]"
+          style={{ flex: 1, padding: "12px", borderRadius: 20, fontFamily: "Georgia, serif", fontWeight: 900, fontSize: "0.8rem", background: `linear-gradient(135deg, ${step.color}, ${step.color}80)`, border: `2px solid ${step.color}`, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, boxShadow: `0 3px 0 ${step.color}55` }}>
+          {idx < GROUND_STEPS.length - 1 ? <><span>Next</span><ChevronRight size={14} /></> : <><CheckCircle2 size={14} /><span>Done</span></>}
         </button>
       </div>
     </div>
   );
 }
 
-// ─── Craving delay timer ──────────────────────────────────────────────────────
+// ─── Delay Timer ─────────────────────────────────────────────────────────────
 function DelayTimer({ onDone }) {
   const TOTAL = 15 * 60;
   const [started,  setStarted]  = useState(false);
@@ -205,73 +228,68 @@ function DelayTimer({ onDone }) {
   const mins = Math.floor(timeLeft / 60);
   const secs = timeLeft % 60;
   const pct  = ((TOTAL - timeLeft) / TOTAL) * 100;
-  const R = 70;
-  const C = 2 * Math.PI * R;
+  const R = 70, C = 2 * Math.PI * R;
 
   if (done) return (
     <motion.div initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }}
-      className="text-center space-y-5">
-      <div className="text-7xl">🏆</div>
-      <h3 className="text-2xl font-black text-slate-900">You crushed it!</h3>
-      <p className="text-slate-400 text-sm">15 minutes just proved the craving was temporary. It always is.</p>
+      style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+      <div style={{ fontSize: "4rem" }}>🏆</div>
+      <h3 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.5rem" }}>Victory, Seeker!</h3>
+      <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.82rem", fontStyle: "italic", lineHeight: 1.7 }}>15 minutes proved the craving was temporary. It always is.</p>
       <button onClick={onDone}
-        className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black active:scale-95 transition-transform shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
-        <Star size={16} fill="white" /> Claim Victory +80 XP
+        className="transition-all active:scale-[0.97]"
+        style={{ width: "100%", background: T.questBtn, border: "2px solid #1478b0", borderRadius: 24, padding: "14px 20px", boxShadow: T.questShadow, color: "#fff", fontWeight: 900, fontFamily: "Georgia, serif", fontSize: "0.82rem", letterSpacing: "0.08em", textTransform: "uppercase", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+        <Star size={15} fill="white" /> Claim Victory +80 XP
       </button>
     </motion.div>
   );
 
   if (!started) return (
-    <div className="space-y-5 text-center">
-      <div className="text-5xl">⏳</div>
-      <h3 className="text-xl font-black text-slate-900">The 15-Minute Rule</h3>
-      <p className="text-slate-500 text-sm leading-relaxed">
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, textAlign: "center" }}>
+      <div style={{ fontSize: "3rem" }}>⏳</div>
+      <h3 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.2rem" }}>The 15-Minute Rule</h3>
+      <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.82rem", fontStyle: "italic", lineHeight: 1.7 }}>
         Every craving peaks and fades within 15 minutes. Start the timer and distract yourself — it will pass.
       </p>
-      <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 text-left space-y-2">
-        <p className="text-xs font-bold text-indigo-600 uppercase tracking-wide mb-1">While you wait:</p>
-        {["Drink a cold glass of water 💧","Walk to another room 🚶","Text a friend something funny 😄","Do 10 jumping jacks 🏃","Wash your face with cold water 🌊"].map((t,i) => (
-          <p key={i} className="text-sm text-slate-600 font-medium">{t}</p>
+      {/* Parchment tips */}
+      <div style={{ background: T.parchment, border: "2px solid #b8954a", borderRadius: 14, padding: "14px 16px", textAlign: "left", boxShadow: "inset 0 2px 6px rgba(0,0,0,0.08)" }}>
+        <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.text, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>While you wait:</p>
+        {["Drink a cold glass of water 💧","Walk to another room 🚶","Text a friend something funny 😄","Do 10 jumping jacks 🏃","Wash your face with cold water 🌊"].map((tip, i) => (
+          <p key={i} style={{ fontFamily: "Georgia, serif", fontSize: "0.78rem", color: T.text, marginBottom: 5, lineHeight: 1.5 }}>{tip}</p>
         ))}
       </div>
       <button onClick={() => setStarted(true)}
-        className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black active:scale-95 transition-transform shadow-lg shadow-indigo-200">
+        className="transition-all active:scale-[0.97]"
+        style={{ width: "100%", background: T.questBtn, border: "2px solid #1478b0", borderRadius: 24, padding: "14px 20px", boxShadow: T.questShadow, color: "#fff", fontWeight: 900, fontFamily: "Georgia, serif", fontSize: "0.85rem", letterSpacing: "0.08em", textTransform: "uppercase", cursor: "pointer" }}>
         Start Timer
       </button>
     </div>
   );
 
   return (
-    <div className="flex flex-col items-center gap-5">
-      <div className="relative w-48 h-48">
-        <svg className="w-full h-full -rotate-90" viewBox="0 0 160 160">
-          <circle cx="80" cy="80" r={R} fill="none" stroke="#e2e8f0" strokeWidth="10" />
-          <circle cx="80" cy="80" r={R} fill="none" stroke="#6366f1" strokeWidth="10"
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 18 }}>
+      {/* Radial timer */}
+      <div style={{ position: "relative", width: 180, height: 180 }}>
+        <svg style={{ width: "100%", height: "100%", transform: "rotate(-90deg)" }} viewBox="0 0 160 160">
+          <circle cx="80" cy="80" r={R} fill="none" stroke="rgba(200,160,74,0.15)" strokeWidth="8" />
+          <circle cx="80" cy="80" r={R} fill="none" stroke="#c8a060" strokeWidth="8"
             strokeDasharray={C} strokeDashoffset={C * (1 - pct / 100)}
-            strokeLinecap="round" style={{ transition: "stroke-dashoffset 1s linear" }} />
+            strokeLinecap="round" style={{ transition: "stroke-dashoffset 1s linear", filter: "drop-shadow(0 0 6px rgba(200,160,74,0.4))" }} />
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-3xl font-black text-slate-800 tabular-nums">
+        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.9rem", lineHeight: 1 }}>
             {String(mins).padStart(2,"0")}:{String(secs).padStart(2,"0")}
           </span>
-          <span className="text-xs text-slate-400 font-semibold">remaining</span>
+          <span style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.65rem", letterSpacing: "0.1em" }}>remaining</span>
         </div>
       </div>
-      <p className="text-slate-400 text-sm text-center">Hold on — the peak is almost over.</p>
-      <div className="w-full bg-indigo-50 border border-indigo-100 rounded-2xl p-3 text-sm font-medium text-indigo-700 text-center">
-        💡 Try drinking cold water right now
+      <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.8rem", fontStyle: "italic", textAlign: "center" }}>Hold on — the peak is almost over, Seeker.</p>
+      <div style={{ width: "100%", background: T.parchment, border: "2px solid #b8954a", borderRadius: 12, padding: "10px 14px", textAlign: "center", boxShadow: "inset 0 2px 4px rgba(0,0,0,0.08)" }}>
+        <p style={{ fontFamily: "Georgia, serif", fontSize: "0.78rem", color: T.text }}>💡 Try drinking cold water right now</p>
       </div>
     </div>
   );
 }
-
-// ─── Tool definitions (rendered as cards on home) ─────────────────────────────
-const TOOLS = [
-  { id: "breathe",  label: "Box Breathing",       desc: "Reset in 4 minutes",        emoji: "🫁", grad: "from-blue-500 to-indigo-500",    bg: "bg-blue-50",   border: "border-blue-100"   },
-  { id: "ground",   label: "5-4-3-2-1 Grounding", desc: "Come back to now",           emoji: "🌿", grad: "from-emerald-500 to-teal-500",   bg: "bg-emerald-50",border: "border-emerald-100"},
-  { id: "delay",    label: "15-Min Timer",         desc: "Ride out the craving",       emoji: "⏱️", grad: "from-indigo-500 to-purple-500",  bg: "bg-indigo-50", border: "border-indigo-100" },
-  { id: "helpline", label: "Call a Helpline",      desc: "You don't have to do alone", emoji: "📞", grad: "from-rose-500 to-pink-500",      bg: "bg-rose-50",   border: "border-rose-100"   },
-];
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function EmergencyPage() {
@@ -280,7 +298,6 @@ export default function EmergencyPage() {
   const [activeTool, setActiveTool] = useState(null);
   const [sosActive,  setSosActive]  = useState(false);
 
-  // ── Load user ───────────────────────────────────────────────────────────
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async user => {
       if (!user) { setLoading(false); return; }
@@ -293,29 +310,22 @@ export default function EmergencyPage() {
     return () => unsub();
   }, []);
 
-  // ── Log craving event + award XP ────────────────────────────────────────
   const logAndAward = async (toolId, xp) => {
     const user = auth.currentUser;
     if (!user) return;
     try {
-      await setDoc(
-        doc(db, "users", user.uid, "cravingLogs", `${toolId}-${Date.now()}`),
-        { tool: toolId, xpEarned: xp, timestamp: serverTimestamp() }
-      );
+      await setDoc(doc(db, "users", user.uid, "cravingLogs", `${toolId}-${Date.now()}`),
+        { tool: toolId, xpEarned: xp, timestamp: serverTimestamp() });
       if (xp > 0) {
         await updateDoc(doc(db, "users", user.uid), { xp: increment(xp) });
         setUserData(prev => ({ ...prev, xp: (prev?.xp || 0) + xp }));
-        toast.success(`Craving resisted! +${xp} XP 💪`, { duration: 3000 });
+        toast.success(`Craving resisted! +${xp} XP ⚔️`, { duration: 3000 });
       }
     } catch (e) { console.error(e); }
   };
 
-  const finishTool = (toolId, xp = 0) => {
-    logAndAward(toolId, xp);
-    setActiveTool(null);
-  };
+  const finishTool = (toolId, xp = 0) => { logAndAward(toolId, xp); setActiveTool(null); };
 
-  // ── SOS ─────────────────────────────────────────────────────────────────
   const handleSOS = async () => {
     setSosActive(true);
     await logAndAward("sos", 0);
@@ -323,116 +333,144 @@ export default function EmergencyPage() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin" />
+    <div style={{ background: T.pageBg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <div style={{ width: 36, height: 36, border: "3px solid #b8954a", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
     </div>
   );
 
-  // ── Active tool screens ──────────────────────────────────────────────────
+  // ── Active tool screen ────────────────────────────────────────────────────
   if (activeTool) {
     const tool = TOOLS.find(t => t.id === activeTool);
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex flex-col px-5 pt-8 pb-32 max-w-lg mx-auto">
+      <div style={{ background: T.pageBg, minHeight: "100vh", display: "flex", flexDirection: "column", padding: "28px 20px 120px", maxWidth: 480, margin: "0 auto" }}>
         <Toaster position="top-center" richColors />
-        <header className="flex items-center justify-between mb-7 shrink-0">
+        <style>{`@keyframes pulse{from{opacity:.3;transform:scale(1)}to{opacity:1;transform:scale(1.4)}}`}</style>
+
+        {/* Atmospheric glow */}
+        <div className="fixed inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 35% at 50% 0%, rgba(255,180,60,0.13), transparent 65%)" }} />
+
+        {/* Header */}
+        <div className="relative z-10" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexShrink: 0 }}>
           <div>
-            <p className="text-xs text-slate-400 font-semibold uppercase tracking-wide">Craving Help</p>
-            <h1 className="text-lg font-black text-slate-900">{tool.label}</h1>
+            <p style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.12em" }}>Craving Shield</p>
+            <h1 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.1rem" }}>{tool.label}</h1>
           </div>
           <button onClick={() => setActiveTool(null)}
-            className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center active:scale-95 transition-transform">
-            <X size={17} className="text-slate-600" />
+            style={{ width: 36, height: 36, background: "rgba(200,160,74,0.1)", border: "1.5px solid rgba(200,160,74,0.22)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.gold }}>
+            <X size={16} />
           </button>
-        </header>
+        </div>
 
-        {activeTool === "breathe"  && <BoxBreathing onDone={() => { toast.success("Breathing complete! You're calmer now 🌊"); finishTool("breathe", 60); }} />}
-        {activeTool === "ground"   && <Grounding    onDone={() => finishTool("ground",  50)} />}
-        {activeTool === "delay"    && <DelayTimer    onDone={() => finishTool("delay",   80)} />}
+        <div className="relative z-10" style={{ flex: 1 }}>
+          {activeTool === "breathe"  && <BoxBreathing onDone={() => { toast.success("Breathing complete! Your spirit is calmer 🌊"); finishTool("breathe", 60); }} />}
+          {activeTool === "ground"   && <Grounding    onDone={() => finishTool("ground", 50)} />}
+          {activeTool === "delay"    && <DelayTimer    onDone={() => finishTool("delay",  80)} />}
 
-        {activeTool === "helpline" && (
-          <div className="space-y-4">
-            <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex items-start gap-3">
-              <AlertTriangle size={18} className="text-rose-500 shrink-0 mt-0.5" />
-              <p className="text-rose-700 text-sm font-medium">
-                You don't have to face this alone. These counsellors are trained, anonymous, and here for you.
-              </p>
+          {activeTool === "helpline" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {/* Warning parchment */}
+              <div style={{ background: T.parchment, border: "2px solid #b8954a", borderRadius: 14, padding: "12px 16px", display: "flex", alignItems: "flex-start", gap: 10, boxShadow: "inset 0 2px 4px rgba(0,0,0,0.08)" }}>
+                <AlertTriangle size={16} style={{ color: "#b8954a", flexShrink: 0, marginTop: 2 }} />
+                <p style={{ fontFamily: "Georgia, serif", fontSize: "0.78rem", color: T.text, lineHeight: 1.65 }}>
+                  You need not face this alone. These counsellors are trained, anonymous, and here for you.
+                </p>
+              </div>
+
+              {HELPLINES.map(h => (
+                <a key={h.name} href={`tel:${h.number}`}
+                  className="transition-all active:scale-[0.97]"
+                  style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px", borderRadius: 16, background: h.bg, border: `2px solid ${h.border}`, textDecoration: "none" }}>
+                  <div style={{ width: 44, height: 44, background: "rgba(200,160,74,0.1)", border: `1.5px solid ${h.border}`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Phone size={20} style={{ color: h.color }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.9rem" }}>{h.name}</p>
+                    <p style={{ fontFamily: "Georgia, serif", fontSize: "0.7rem", color: T.muted, fontStyle: "italic" }}>{h.desc}</p>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: h.color, fontSize: "0.82rem" }}>{h.number}</p>
+                    <p style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: T.muted }}>Tap to call</p>
+                  </div>
+                </a>
+              ))}
+
+              <button onClick={() => finishTool("helpline", 30)}
+                className="transition-all active:scale-[0.97]"
+                style={{ width: "100%", background: T.woodLight, border: `2px solid ${T.btnBorder}`, borderRadius: 24, padding: "13px 20px", boxShadow: T.btnShadow, color: T.text, fontWeight: 900, fontFamily: "Georgia, serif", fontSize: "0.82rem", letterSpacing: "0.08em", textTransform: "uppercase", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 4 }}>
+                <CheckCircle2 size={15} /> I Got Support +30 XP
+              </button>
             </div>
-            {HELPLINES.map(h => (
-              <a key={h.name} href={`tel:${h.number}`}
-                className={`flex items-center gap-4 p-5 rounded-2xl border-2 ${h.color} active:scale-95 transition-transform`}>
-                <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm shrink-0">
-                  <Phone size={20} />
-                </div>
-                <div className="flex-1">
-                  <p className="font-black text-sm">{h.name}</p>
-                  <p className="text-xs opacity-70">{h.desc}</p>
-                </div>
-                <div>
-                  <p className="font-black text-sm">{h.number}</p>
-                  <p className="text-xs opacity-60 text-right">Tap to call</p>
-                </div>
-              </a>
-            ))}
-            <button onClick={() => finishTool("helpline", 30)}
-              className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black active:scale-95 transition-transform mt-2 flex items-center justify-center gap-2">
-              <CheckCircle2 size={16} /> I Got Support +30 XP
-            </button>
-          </div>
-        )}
+          )}
+        </div>
 
         <BottomNav />
       </div>
     );
   }
 
-  // ── Home screen ──────────────────────────────────────────────────────────
+  // ── Home screen ───────────────────────────────────────────────────────────
   const daysSober = userData?.sobrietyDate
-    ? Math.floor((Date.now() - new Date(userData.sobrietyDate).getTime()) / 86400000)
-    : 0;
-  const name      = (userData?.name ?? "Friend").split(" ")[0];
-  const whyReason = userData?.assessmentAnswers?.[8] || null; // primary goal from onboarding
+    ? Math.floor((Date.now() - new Date(userData.sobrietyDate).getTime()) / 86400000) : 0;
+  const name      = (userData?.name ?? "Seeker").split(" ")[0];
+  const whyReason = userData?.assessmentAnswers?.[8] || null;
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-28">
+    <div style={{ background: T.pageBg, minHeight: "100vh", paddingBottom: 112 }}>
       <Toaster position="top-center" richColors />
+      <style>{`@keyframes pulse{from{opacity:.3;transform:scale(1)}to{opacity:1;transform:scale(1.4)}}`}</style>
+
+      {/* Atmospheric glow */}
+      <div className="fixed inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 35% at 50% 0%, rgba(255,80,60,0.1), transparent 65%)" }} />
+      {/* Sparkles */}
+      <div className="fixed inset-0 pointer-events-none opacity-30">
+        {[{l:"6%",t:"10%"},{l:"88%",t:"16%"},{l:"15%",t:"78%"},{l:"82%",t:"70%"}].map((p,i)=>(
+          <div key={i} className="absolute rounded-full"
+            style={{ left:p.l, top:p.t, width:5, height:5, background:"rgba(255,130,100,0.6)", animation:`pulse ${2.2+i*0.4}s ease-in-out infinite alternate`, animationDelay:`${i*0.35}s` }} />
+        ))}
+      </div>
 
       {/* ── SOS overlay ── */}
       <AnimatePresence>
         {sosActive && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-blue-600 flex flex-col items-center justify-center text-white text-center px-8">
+            style={{ position: "fixed", inset: 0, zIndex: 50, background: "linear-gradient(135deg, #2d1a0c, #1a0c04)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#fff", textAlign: "center", padding: "0 40px" }}>
+            {/* Arch glow */}
+            <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(200,160,74,0.18), transparent 70%)" }} />
             <motion.div initial={{ scale: 0 }} animate={{ scale: [0, 1.2, 1] }} transition={{ duration: 0.5 }}
-              className="text-8xl mb-6">🛡️</motion.div>
-            <h2 className="text-3xl font-black mb-3">You are safe.</h2>
-            <p className="text-blue-200 text-lg font-medium mb-2">This feeling is temporary.</p>
-            <p className="text-blue-300 text-sm">Take one slow breath. You've got this.</p>
+              style={{ fontSize: "5rem", marginBottom: 24, position: "relative", zIndex: 1 }}>🛡️</motion.div>
+            <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "2rem", marginBottom: 12, position: "relative", zIndex: 1 }}>You are safe.</h2>
+            <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "1rem", fontStyle: "italic", marginBottom: 8, position: "relative", zIndex: 1 }}>This feeling is temporary.</p>
+            <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.82rem", position: "relative", zIndex: 1 }}>Take one slow breath. You've got this, Seeker.</p>
             <motion.div
               initial={{ width: 0 }} animate={{ width: "100%" }}
               transition={{ duration: 4, ease: "linear" }}
-              className="absolute bottom-0 left-0 h-1.5 bg-white/40"
+              style={{ position: "absolute", bottom: 0, left: 0, height: 4, background: "linear-gradient(90deg, #c8a060, #f0c840)", borderRadius: "0 0 0 0" }}
             />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── Header ── */}
-      <div className="bg-gradient-to-b from-rose-500 to-rose-600 px-5 pt-12 pb-8 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-        <div className="relative z-10 max-w-lg mx-auto">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle size={16} className="text-rose-200" />
-            <p className="text-rose-200 text-xs font-bold uppercase tracking-widest">Craving Help</p>
+      {/* ── Header banner ── */}
+      <div style={{ background: "linear-gradient(180deg, rgba(120,30,20,0.9), rgba(80,20,10,0.85))", padding: "44px 20px 28px", position: "relative", overflow: "hidden", borderBottom: "1px solid rgba(200,80,60,0.25)" }}>
+        <div style={{ position: "absolute", top: 0, right: 0, opacity: 0.06 }}>
+          <Shield size={160} fill="currentColor" style={{ color: "#fff" }} />
+        </div>
+        <div style={{ maxWidth: 480, margin: "0 auto", position: "relative", zIndex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+            <AlertTriangle size={14} style={{ color: "rgba(255,180,160,0.7)" }} />
+            <p style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: "rgba(255,180,160,0.7)", textTransform: "uppercase", letterSpacing: "0.15em", fontWeight: 700 }}>Craving Shield</p>
           </div>
-          <h1 className="text-2xl font-black mb-1">Hey {name}, hold on. 💪</h1>
-          <p className="text-rose-100 text-sm leading-relaxed">
-            Cravings are temporary. Use one of these tools right now — every one you resist makes you stronger.
+          <h1 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.4rem", marginBottom: 8 }}>Hold fast, {name}. 💪</h1>
+          <p style={{ fontFamily: "Georgia, serif", color: "rgba(255,220,180,0.75)", fontSize: "0.82rem", lineHeight: 1.7, fontStyle: "italic" }}>
+            Cravings are temporary. Use one of these tools right now — every one you resist makes your legend stronger.
           </p>
 
           {/* Streak reminder */}
           {daysSober > 0 && (
-            <div className="mt-4 bg-white/15 rounded-2xl px-4 py-3 flex items-center gap-3">
-              <Flame size={20} className="text-yellow-300 shrink-0" />
-              <p className="text-sm font-bold">
+            <div style={{ marginTop: 14, background: "rgba(200,160,74,0.15)", border: "1.5px solid rgba(200,160,74,0.3)", borderRadius: 14, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10 }}>
+              <Flame size={18} style={{ color: "#f0c840", flexShrink: 0 }} />
+              <p style={{ fontFamily: "Georgia, serif", fontWeight: 700, color: T.goldLight, fontSize: "0.82rem" }}>
                 {daysSober} day{daysSober !== 1 ? "s" : ""} sober — don't break that streak now.
               </p>
             </div>
@@ -440,92 +478,85 @@ export default function EmergencyPage() {
         </div>
       </div>
 
-      <div className="px-5 max-w-lg mx-auto">
+      <div style={{ padding: "0 20px", maxWidth: 480, margin: "0 auto" }}>
 
         {/* ── SOS Button ── */}
-        <motion.button
-          whileTap={{ scale: 0.96 }}
-          onClick={handleSOS}
-          className="w-full -mt-5 bg-white border-4 border-rose-500 text-rose-600 py-5 rounded-3xl font-black text-lg shadow-xl shadow-rose-100 flex items-center justify-center gap-3 mb-5"
-        >
-          <Shield size={24} fill="currentColor" className="text-rose-500" />
+        <motion.button whileTap={{ scale: 0.96 }} onClick={handleSOS}
+          style={{ width: "100%", marginTop: -20, background: "linear-gradient(180deg, rgba(90,15,10,0.95), rgba(60,10,5,0.98))", border: "3px solid rgba(200,80,60,0.6)", borderRadius: 24, padding: "18px 20px", fontFamily: "Georgia, serif", fontWeight: 900, fontSize: "1rem", letterSpacing: "0.08em", color: "#ffb0a0", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 14, cursor: "pointer", boxShadow: "0 4px 0 rgba(120,20,10,0.8), 0 8px 32px rgba(200,50,30,0.3), inset 0 1px 0 rgba(255,180,160,0.15)" }}>
+          <Shield size={22} fill="#ffb0a0" style={{ color: "#ffb0a0" }} />
           SOS — I Need Help Right Now
         </motion.button>
 
-        {/* ── "Why I'm doing this" reminder ── */}
+        {/* ── Why reminder — parchment ── */}
         {whyReason && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5 flex items-start gap-3">
-            <Star size={16} className="text-amber-500 shrink-0 mt-0.5" fill="currentColor" />
+          <div style={{ background: T.parchment, border: "2px solid #b8954a", borderRadius: 14, padding: "12px 16px", marginBottom: 14, display: "flex", alignItems: "flex-start", gap: 10, boxShadow: "inset 0 2px 4px rgba(0,0,0,0.08)" }}>
+            <Star size={14} style={{ color: "#b8954a", flexShrink: 0, marginTop: 2 }} fill="#b8954a" />
             <div>
-              <p className="text-xs font-bold text-amber-600 uppercase tracking-wide mb-0.5">Your goal</p>
-              <p className="text-sm font-semibold text-amber-800">{whyReason}</p>
+              <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.text, fontSize: "0.62rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Your quest</p>
+              <p style={{ fontFamily: "Georgia, serif", fontWeight: 700, color: T.text, fontSize: "0.82rem" }}>{whyReason}</p>
             </div>
           </div>
         )}
 
-        {/* ── Tool cards ── */}
-        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Choose a tool</p>
+        {/* ── Tool grid ── */}
+        <p style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>Choose a shield</p>
 
-        <div className="grid grid-cols-2 gap-3 mb-5">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
           {TOOLS.map(tool => (
-            <motion.button
-              key={tool.id}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setActiveTool(tool.id)}
-              className={`${tool.bg} border-2 ${tool.border} rounded-3xl p-5 text-left flex flex-col gap-3 active:scale-95 transition-transform`}
-            >
-              <span className="text-3xl">{tool.emoji}</span>
+            <motion.button key={tool.id} whileTap={{ scale: 0.95 }} onClick={() => setActiveTool(tool.id)}
+              className="transition-all"
+              style={{ background: tool.bg, border: `2px solid ${tool.border}`, borderRadius: 18, padding: "16px 14px", textAlign: "left", display: "flex", flexDirection: "column", gap: 10, cursor: "pointer" }}>
+              <span style={{ fontSize: "2rem" }}>{tool.emoji}</span>
               <div>
-                <p className="font-black text-slate-900 text-sm leading-tight">{tool.label}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{tool.desc}</p>
+                <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.88rem", lineHeight: 1.3 }}>{tool.label}</p>
+                <p style={{ fontFamily: "Georgia, serif", fontSize: "0.68rem", color: T.muted, marginTop: 3, fontStyle: "italic" }}>{tool.desc}</p>
               </div>
-              <div className={`self-start text-xs font-black text-white bg-gradient-to-r ${tool.grad} px-2.5 py-1 rounded-full`}>
-                Use now →
+              <div style={{ alignSelf: "flex-start", background: `${tool.color}25`, border: `1.5px solid ${tool.border}`, borderRadius: 99, padding: "3px 10px" }}>
+                <span style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: tool.color, fontSize: "0.65rem", letterSpacing: "0.06em" }}>Use now →</span>
               </div>
             </motion.button>
           ))}
         </div>
 
-        {/* ── Motivational quote ── */}
-        <div
-          className="rounded-3xl p-5 mb-5 relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 60%, #0891b2 100%)" }}
-        >
-          <div className="absolute top-0 right-0 w-28 h-28 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-          <div className="relative z-10">
-            <p className="text-blue-200 text-xs font-bold uppercase tracking-widest mb-2">Remember this</p>
-            <p className="text-white font-semibold text-sm leading-relaxed italic">
-              "You don't have to be perfect. You just have to keep going. Every craving you survive is a vote for the person you're becoming."
-            </p>
-            <div className="flex items-center gap-2 mt-3">
-              <Heart size={14} className="text-rose-300" fill="currentColor" />
-              <p className="text-blue-300 text-xs">From your recovery community</p>
-            </div>
+        {/* ── Motivational quote — wooden arch card ── */}
+        <div style={{ background: T.cardBg, border: `1.5px solid ${T.cardBorder}`, borderRadius: 20, padding: "18px 18px", marginBottom: 12, position: "relative", overflow: "hidden", boxShadow: "0 8px 24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,220,130,0.06)" }}>
+          <div style={{ position: "absolute", top: -20, right: -20, opacity: 0.05 }}>
+            <Heart size={90} fill="currentColor" style={{ color: "#f0c840" }} />
+          </div>
+          <p style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 8 }}>ᚠ Remember this</p>
+          <p style={{ fontFamily: "Georgia, serif", color: T.goldLight, fontSize: "0.82rem", lineHeight: 1.75, fontStyle: "italic" }}>
+            "You don't have to be perfect. You just have to keep going. Every craving you survive is a rune carved into your legend."
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10 }}>
+            <Heart size={12} fill="#c06060" style={{ color: "#c06060" }} />
+            <p style={{ fontFamily: "Georgia, serif", fontSize: "0.65rem", color: T.muted, fontStyle: "italic" }}>From your recovery fellowship</p>
           </div>
         </div>
 
-        {/* ── What happens in your brain ── */}
-        <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm mb-4">
-          <p className="font-black text-slate-900 text-sm mb-3 flex items-center gap-2">
-            <Zap size={15} className="text-yellow-500" fill="currentColor" />
-            What's happening in your brain
+        {/* ── Brain science — wooden card ── */}
+        <div style={{ background: T.cardBg, border: `1.5px solid ${T.cardBorder}`, borderRadius: 18, padding: "16px 16px", marginBottom: 12, boxShadow: "inset 0 1px 0 rgba(255,220,130,0.04)" }}>
+          <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.88rem", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
+            <Zap size={14} style={{ color: "#f0c840" }} fill="#f0c840" /> What's happening in your mind
           </p>
           {[
-            { step: "1", text: "The craving triggers your brain's reward circuit — it's not weakness, it's chemistry." },
-            { step: "2", text: "Peak craving intensity lasts 5–20 minutes then drops — always." },
-            { step: "3", text: "Each time you resist, your brain rewires. The next craving will be weaker." },
-          ].map(({ step, text }) => (
-            <div key={step} className="flex gap-3 mb-2.5 last:mb-0">
-              <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-black shrink-0">{step}</div>
-              <p className="text-xs text-slate-500 leading-relaxed">{text}</p>
+            { n: "1", text: "The craving triggers your brain's reward circuit — it's not weakness, it's chemistry." },
+            { n: "2", text: "Peak craving intensity lasts 5–20 minutes then drops — always." },
+            { n: "3", text: "Each time you resist, your brain rewires. The next craving will be weaker." },
+          ].map(({ n, text }) => (
+            <div key={n} style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+              <div style={{ width: 24, height: 24, background: "rgba(200,160,74,0.18)", border: "1.5px solid rgba(200,160,74,0.3)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <span style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.gold, fontSize: "0.65rem" }}>{n}</span>
+              </div>
+              <p style={{ fontFamily: "Georgia, serif", fontSize: "0.75rem", color: T.muted, lineHeight: 1.65, fontStyle: "italic" }}>{text}</p>
             </div>
           ))}
         </div>
 
         {/* ── Emergency helpline shortcut ── */}
         <a href="tel:9152987821"
-          className="w-full flex items-center justify-center gap-2 border-2 border-rose-200 bg-rose-50 text-rose-600 py-4 rounded-2xl font-bold text-sm active:scale-95 transition-transform mb-2">
-          <Phone size={16} />
+          className="transition-all active:scale-[0.97]"
+          style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "rgba(192,96,96,0.12)", border: "2px solid rgba(192,96,96,0.3)", borderRadius: 18, padding: "14px 20px", color: "#c06060", fontFamily: "Georgia, serif", fontWeight: 700, fontSize: "0.82rem", textDecoration: "none", marginBottom: 8 }}>
+          <Phone size={15} />
           Emergency: iCall · 9152987821
         </a>
 

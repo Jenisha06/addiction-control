@@ -12,55 +12,70 @@ import {
 import { toast, Toaster } from "sonner";
 import BottomNav from "../components/BottomNav";
 
-// ─── Avatars (UNCHANGED) ──────────────────────────────────────────────────────
+// ─── Theme tokens ─────────────────────────────────────────────────────────────
+const T = {
+  gold:       "#c8a060",
+  goldLight:  "#f7e0bb",
+  muted:      "#a07848",
+  text:       "#3d2410",
+  parchment:  "linear-gradient(180deg, #f5e8c8 0%, #ede0b4 100%)",
+  cardBg:     "linear-gradient(135deg, rgba(90,52,24,0.72) 0%, rgba(58,32,16,0.82) 100%)",
+  cardBorder: "rgba(200,160,74,0.28)",
+  pageBg:     "linear-gradient(160deg, #2d1a0c 0%, #3d2210 40%, #2a1808 100%)",
+  questBtn:   "linear-gradient(180deg, #5ecef5 0%, #38b6f0 40%, #1a96d8 100%)",
+  questShadow:"0 4px 0 #0e5c8a, 0 6px 20px rgba(30,140,210,0.4), inset 0 1px 0 rgba(255,255,255,0.4)",
+  woodLight:  "linear-gradient(180deg, #d4b483 0%, #b8955c 50%, #a07840 100%)",
+  btnBorder:  "#8a6030",
+  btnShadow:  "0 3px 0 #6a4820, 0 4px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,230,160,0.4)",
+};
+
+// ─── Avatars & Outfits & Poses (UNCHANGED DATA) ───────────────────────────────
 const AVATARS = [
-  { id: "aurora", name: "Aurora", skin: "#F4C899", skinShade: "#E8A870", skinLight: "#FDE8CC", hair: "#1C1C2E", hairHigh: "#2d2d45", eye: "#5B8DD9", lip: "#E8698A", blush: "#F4A5B0", brow: "#1C1C2E", lash: "#0d0d1a", hairStyle: "long",     gradient: ["#667eea", "#a78bfa"], bg: "#EEF2FF" },
-  { id: "nova",   name: "Nova",   skin: "#C8825A", skinShade: "#A0623E", skinLight: "#E0A07A", hair: "#0d0800", hairHigh: "#1a0f00", eye: "#8B6914", lip: "#B85C38", blush: "#C47B5A", brow: "#0d0800", lash: "#000000", hairStyle: "bun",      gradient: ["#f093fb", "#f5576c"], bg: "#FFF0F3" },
-  { id: "sage",   name: "Sage",   skin: "#FCDCB2", skinShade: "#E8B880", skinLight: "#FFF0D8", hair: "#7B3010", hairHigh: "#A04020", eye: "#3A8C3A", lip: "#D4607A", blush: "#FFB3C1", brow: "#7B3010", lash: "#4a1a00", hairStyle: "wavy",     gradient: ["#43e97b", "#38f9d7"], bg: "#F0FFF4" },
-  { id: "luna",   name: "Luna",   skin: "#E8C090", skinShade: "#CC9A68", skinLight: "#F8DEB8", hair: "#1a0800", hairHigh: "#2d1000", eye: "#8B4513", lip: "#C46B52", blush: "#DBA58E", brow: "#1a0800", lash: "#0d0400", hairStyle: "ponytail", gradient: ["#fa709a", "#fee140"], bg: "#FFFBEB" },
-  { id: "zara",   name: "Zara",   skin: "#7B3E1E", skinShade: "#5A2A10", skinLight: "#A05828", hair: "#080808", hairHigh: "#181818", eye: "#8B5E3C", lip: "#7B2D1F", blush: "#8B5E4A", brow: "#080808", lash: "#000000", hairStyle: "afro",     gradient: ["#4ecdc4", "#45b7d1"], bg: "#F0FDFF" },
-  { id: "rei",    name: "Rei",    skin: "#FFE4C4", skinShade: "#FFCA96", skinLight: "#FFF4E8", hair: "#0d0d0d", hairHigh: "#202020", eye: "#4B4B4B", lip: "#F48FB1", blush: "#FFCDD2", brow: "#1a1a1a", lash: "#0d0d0d", hairStyle: "straight", gradient: ["#ff9a9e", "#fecfef"], bg: "#FFF5F5" },
+  { id:"aurora",skin:"#F4C899",skinShade:"#E8A870",skinLight:"#FDE8CC",hair:"#1C1C2E",hairHigh:"#2d2d45",eye:"#5B8DD9",lip:"#E8698A",blush:"#F4A5B0",brow:"#1C1C2E",lash:"#0d0d1a",hairStyle:"long",     name:"Aurora",gradient:["#667eea","#a78bfa"],bg:"#EEF2FF" },
+  { id:"nova",  skin:"#C8825A",skinShade:"#A0623E",skinLight:"#E0A07A",hair:"#0d0800",hairHigh:"#1a0f00",eye:"#8B6914",lip:"#B85C38",blush:"#C47B5A",brow:"#0d0800",lash:"#000000",hairStyle:"bun",      name:"Nova",  gradient:["#f093fb","#f5576c"],bg:"#FFF0F3" },
+  { id:"sage",  skin:"#FCDCB2",skinShade:"#E8B880",skinLight:"#FFF0D8",hair:"#7B3010",hairHigh:"#A04020",eye:"#3A8C3A",lip:"#D4607A",blush:"#FFB3C1",brow:"#7B3010",lash:"#4a1a00",hairStyle:"wavy",     name:"Sage",  gradient:["#43e97b","#38f9d7"],bg:"#F0FFF4" },
+  { id:"luna",  skin:"#E8C090",skinShade:"#CC9A68",skinLight:"#F8DEB8",hair:"#1a0800",hairHigh:"#2d1000",eye:"#8B4513",lip:"#C46B52",blush:"#DBA58E",brow:"#1a0800",lash:"#0d0400",hairStyle:"ponytail", name:"Luna",  gradient:["#fa709a","#fee140"],bg:"#FFFBEB" },
+  { id:"zara",  skin:"#7B3E1E",skinShade:"#5A2A10",skinLight:"#A05828",hair:"#080808",hairHigh:"#181818",eye:"#8B5E3C",lip:"#7B2D1F",blush:"#8B5E4A",brow:"#080808",lash:"#000000",hairStyle:"afro",     name:"Zara",  gradient:["#4ecdc4","#45b7d1"],bg:"#F0FDFF" },
+  { id:"rei",   skin:"#FFE4C4",skinShade:"#FFCA96",skinLight:"#FFF4E8",hair:"#0d0d0d",hairHigh:"#202020",eye:"#4B4B4B",lip:"#F48FB1",blush:"#FFCDD2",brow:"#1a1a1a",lash:"#0d0d0d",hairStyle:"straight", name:"Rei",   gradient:["#ff9a9e","#fecfef"],bg:"#FFF5F5" },
 ];
-
 const OUTFITS = [
-  { id: "casual",  name: "Casual",  top: "#E8EAF6", topD: "#C5C8E8", bottom: "#1a3a6b", bottomD: "#0d2245", shoe: "#E0E0E0", shoeD: "#BDBDBD", lace: "#FFFFFF", accent: "#7986CB" },
-  { id: "sporty",  name: "Sporty",  top: "#D32F2F", topD: "#B71C1C", bottom: "#1A1A1A", bottomD: "#000000", shoe: "#FFFFFF",  shoeD: "#E0E0E0", lace: "#D32F2F", accent: "#FF5252" },
-  { id: "elegant", name: "Elegant", top: "#1A237E", topD: "#0D1457", bottom: "#1A237E", bottomD: "#0D1457", shoe: "#B8960C", shoeD: "#8B7000", lace: "#FFD700", accent: "#3949AB" },
-  { id: "street",  name: "Street",  top: "#1C1C1C", topD: "#0a0a0a", bottom: "#2E3A40", bottomD: "#1a2228", shoe: "#FF6F00", shoeD: "#E65100", lace: "#FFFFFF", accent: "#FF6F00" },
-  { id: "summer",  name: "Summer",  top: "#F48FB1", topD: "#E91E8C", bottom: "#F8BBD9", bottomD: "#F48FB1", shoe: "#FFFFFF",  shoeD: "#F8BBD9", lace: "#F48FB1", accent: "#E91E8C" },
-  { id: "cozy",    name: "Cozy",    top: "#6D4C41", topD: "#4E342E", bottom: "#3E2723", bottomD: "#1a0f0d", shoe: "#A1887F", shoeD: "#795548", lace: "#D7CCC8", accent: "#A1887F" },
+  { id:"casual", name:"Casual",  top:"#E8EAF6",topD:"#C5C8E8",bottom:"#1a3a6b",bottomD:"#0d2245",shoe:"#E0E0E0",shoeD:"#BDBDBD",lace:"#FFFFFF",accent:"#7986CB" },
+  { id:"sporty", name:"Sporty",  top:"#D32F2F",topD:"#B71C1C",bottom:"#1A1A1A",bottomD:"#000000",shoe:"#FFFFFF", shoeD:"#E0E0E0",lace:"#D32F2F",accent:"#FF5252" },
+  { id:"elegant",name:"Elegant", top:"#1A237E",topD:"#0D1457",bottom:"#1A237E",bottomD:"#0D1457",shoe:"#B8960C",shoeD:"#8B7000",lace:"#FFD700",accent:"#3949AB" },
+  { id:"street", name:"Street",  top:"#1C1C1C",topD:"#0a0a0a",bottom:"#2E3A40",bottomD:"#1a2228",shoe:"#FF6F00",shoeD:"#E65100",lace:"#FFFFFF",accent:"#FF6F00" },
+  { id:"summer", name:"Summer",  top:"#F48FB1",topD:"#E91E8C",bottom:"#F8BBD9",bottomD:"#F48FB1",shoe:"#FFFFFF", shoeD:"#F8BBD9",lace:"#F48FB1",accent:"#E91E8C" },
+  { id:"cozy",   name:"Cozy",    top:"#6D4C41",topD:"#4E342E",bottom:"#3E2723",bottomD:"#1a0f0d",shoe:"#A1887F",shoeD:"#795548",lace:"#D7CCC8",accent:"#A1887F" },
 ];
-
 const POSES = [
-  { id: "stand",  name: "Stand",  emoji: "🧍", desc: "Default idle" },
-  { id: "walk",   name: "Walk",   emoji: "🚶", desc: "Walking loop" },
-  { id: "runway", name: "Runway", emoji: "💃", desc: "Catwalk strut" },
-  { id: "pose",   name: "Pose",   emoji: "✨", desc: "Glam sparkle" },
+  { id:"stand",  name:"Stand",  emoji:"🧍",desc:"Default idle"  },
+  { id:"walk",   name:"Walk",   emoji:"🚶",desc:"Walking loop"  },
+  { id:"runway", name:"Runway", emoji:"💃",desc:"Catwalk strut" },
+  { id:"pose",   name:"Pose",   emoji:"✨",desc:"Glam sparkle"  },
 ];
 
-// ─── Gamified achievements ────────────────────────────────────────────────────
+// ─── Achievements ─────────────────────────────────────────────────────────────
 const ACHIEVEMENTS = [
-  { id: "day1",     cat: "sobriety", name: "First Step",        desc: "Stay sober for 1 day",       icon: "🌱", xp: 100,  rarity: "common",    check: d => d.daysSober >= 1    },
-  { id: "day7",     cat: "sobriety", name: "One Week Wonder",   desc: "Stay sober for 7 days",      icon: "⭐", xp: 300,  rarity: "uncommon",  check: d => d.daysSober >= 7    },
-  { id: "day30",    cat: "sobriety", name: "Monthly Warrior",   desc: "Stay sober for 30 days",     icon: "🔥", xp: 800,  rarity: "rare",      check: d => d.daysSober >= 30   },
-  { id: "day90",    cat: "sobriety", name: "Iron Will",         desc: "Stay sober for 90 days",     icon: "⚔️", xp: 2000, rarity: "epic",      check: d => d.daysSober >= 90   },
-  { id: "day365",   cat: "sobriety", name: "Freedom",           desc: "365 days of sobriety",       icon: "👑", xp: 5000, rarity: "legendary", check: d => d.daysSober >= 365  },
-  { id: "streak3",  cat: "streak",   name: "Hot Streak",        desc: "3-day check-in streak",      icon: "💫", xp: 150,  rarity: "common",    check: d => (d.currentStreak||0) >= 3  },
-  { id: "streak7",  cat: "streak",   name: "Unbreakable",       desc: "7-day check-in streak",      icon: "🏆", xp: 500,  rarity: "uncommon",  check: d => (d.currentStreak||0) >= 7  },
-  { id: "streak30", cat: "streak",   name: "Legendary Run",     desc: "30-day check-in streak",     icon: "🌟", xp: 1500, rarity: "epic",      check: d => (d.currentStreak||0) >= 30 },
-  { id: "xp500",    cat: "xp",       name: "Rising Star",       desc: "Earn 500 XP total",          icon: "✨", xp: 200,  rarity: "common",    check: d => (d.xp||0) >= 500   },
-  { id: "xp2000",   cat: "xp",       name: "Power Player",      desc: "Earn 2,000 XP total",        icon: "⚡", xp: 500,  rarity: "uncommon",  check: d => (d.xp||0) >= 2000  },
-  { id: "xp5000",   cat: "xp",       name: "XP Legend",         desc: "Earn 5,000 XP total",        icon: "🎯", xp: 1000, rarity: "rare",      check: d => (d.xp||0) >= 5000  },
-  { id: "level3",   cat: "level",    name: "Level Up!",         desc: "Reach Level 3",              icon: "🎮", xp: 300,  rarity: "uncommon",  check: d => (d.level||1) >= 3   },
-  { id: "level5",   cat: "level",    name: "Elite",             desc: "Reach Level 5",              icon: "💎", xp: 1000, rarity: "epic",      check: d => (d.level||1) >= 5   },
+  { id:"day1",    cat:"sobriety",name:"First Step",      desc:"Stay sober for 1 day",     icon:"🌱",xp:100, rarity:"common",   check:d=>d.daysSober>=1   },
+  { id:"day7",    cat:"sobriety",name:"One Week Wonder", desc:"Stay sober for 7 days",     icon:"⭐",xp:300, rarity:"uncommon", check:d=>d.daysSober>=7   },
+  { id:"day30",   cat:"sobriety",name:"Monthly Warrior", desc:"Stay sober for 30 days",    icon:"🔥",xp:800, rarity:"rare",     check:d=>d.daysSober>=30  },
+  { id:"day90",   cat:"sobriety",name:"Iron Will",       desc:"Stay sober for 90 days",    icon:"⚔️",xp:2000,rarity:"epic",     check:d=>d.daysSober>=90  },
+  { id:"day365",  cat:"sobriety",name:"Freedom",         desc:"365 days of sobriety",      icon:"👑",xp:5000,rarity:"legendary",check:d=>d.daysSober>=365 },
+  { id:"streak3", cat:"streak",  name:"Hot Streak",      desc:"3-day check-in streak",     icon:"💫",xp:150, rarity:"common",   check:d=>(d.currentStreak||0)>=3  },
+  { id:"streak7", cat:"streak",  name:"Unbreakable",     desc:"7-day check-in streak",     icon:"🏆",xp:500, rarity:"uncommon", check:d=>(d.currentStreak||0)>=7  },
+  { id:"streak30",cat:"streak",  name:"Legendary Run",   desc:"30-day check-in streak",    icon:"🌟",xp:1500,rarity:"epic",     check:d=>(d.currentStreak||0)>=30 },
+  { id:"xp500",   cat:"xp",      name:"Rising Star",     desc:"Earn 500 XP total",         icon:"✨",xp:200, rarity:"common",   check:d=>(d.xp||0)>=500  },
+  { id:"xp2000",  cat:"xp",      name:"Power Player",    desc:"Earn 2,000 XP total",       icon:"⚡",xp:500, rarity:"uncommon", check:d=>(d.xp||0)>=2000 },
+  { id:"xp5000",  cat:"xp",      name:"XP Legend",       desc:"Earn 5,000 XP total",       icon:"🎯",xp:1000,rarity:"rare",     check:d=>(d.xp||0)>=5000 },
+  { id:"level3",  cat:"level",   name:"Level Up!",       desc:"Reach Level 3",             icon:"🎮",xp:300, rarity:"uncommon", check:d=>(d.level||1)>=3  },
+  { id:"level5",  cat:"level",   name:"Elite",           desc:"Reach Level 5",             icon:"💎",xp:1000,rarity:"epic",     check:d=>(d.level||1)>=5  },
 ];
 
-const RARITY = {
-  common:    { badge: "bg-slate-100  text-slate-500",  ring: "ring-slate-100",   glow: "",                          label: "Common"    },
-  uncommon:  { badge: "bg-blue-100   text-blue-600",   ring: "ring-blue-200",    glow: "shadow-blue-100   shadow-md", label: "Uncommon"  },
-  rare:      { badge: "bg-purple-100 text-purple-600", ring: "ring-purple-200",  glow: "shadow-purple-100 shadow-md", label: "Rare"      },
-  epic:      { badge: "bg-amber-100  text-amber-600",  ring: "ring-amber-300",   glow: "shadow-amber-100  shadow-lg", label: "Epic"      },
-  legendary: { badge: "bg-rose-100   text-rose-600",   ring: "ring-rose-400",    glow: "shadow-rose-200   shadow-xl", label: "Legendary" },
+const RARITY_CFG = {
+  common:    { color:"rgba(200,160,74,0.5)",  glow:"none",                                  label:"Common"   },
+  uncommon:  { color:"rgba(106,180,216,0.6)", glow:"0 0 16px rgba(106,180,216,0.25)",       label:"Uncommon" },
+  rare:      { color:"rgba(154,120,192,0.6)", glow:"0 0 16px rgba(154,120,192,0.3)",        label:"Rare"     },
+  epic:      { color:"rgba(200,160,74,0.8)",  glow:"0 0 20px rgba(200,160,74,0.35)",        label:"Epic"     },
+  legendary: { color:"rgba(220,100,80,0.8)",  glow:"0 0 24px rgba(220,100,80,0.4)",         label:"Legendary"},
 };
 
 // ─── Avatar SVG (UNCHANGED) ───────────────────────────────────────────────────
@@ -79,8 +94,8 @@ function HumanAvatar({ av, outfit, pose, walking, size = 320 }) {
   };
   return (
     <motion.div className="flex items-end justify-center" style={{ height: size+20 }} animate={runwayAnim}>
-      <svg viewBox="60 18 200 612" width={size*0.56} height={size} xmlns="http://www.w3.org/2000/svg" style={{ filter:"drop-shadow(0 20px 40px rgba(0,0,0,0.18)) drop-shadow(0 6px 12px rgba(0,0,0,0.10))", overflow:"visible" }}>
-        <ellipse cx="160" cy="626" rx="75" ry="11" fill="rgba(0,0,0,0.13)"/>
+      <svg viewBox="60 18 200 612" width={size*0.56} height={size} xmlns="http://www.w3.org/2000/svg" style={{ filter:"drop-shadow(0 20px 40px rgba(0,0,0,0.25)) drop-shadow(0 6px 12px rgba(0,0,0,0.15))", overflow:"visible" }}>
+        <ellipse cx="160" cy="626" rx="75" ry="11" fill="rgba(0,0,0,0.18)"/>
         <Hair/>
         <rect x="146" y="172" width="28" height="88" rx="12" fill={av.skin}/><rect x="146" y="172" width="10" height="88" rx="5" fill={av.skinShade} opacity="0.25"/>
         <ellipse cx="160" cy="118" rx="64" ry="70" fill={av.skin}/><ellipse cx="160" cy="82" rx="50" ry="28" fill={av.skinLight} opacity="0.6"/><ellipse cx="160" cy="168" rx="40" ry="20" fill={av.skinShade} opacity="0.22"/>
@@ -151,11 +166,10 @@ export default function ProfilePage() {
   const [pose,      setPose]      = useState("stand");
   const [custTab,   setCustTab]   = useState("avatar");
 
-  const av      = AVATARS[avatarIdx];
-  const outfit  = OUTFITS[outfitIdx];
+  const av     = AVATARS[avatarIdx];
+  const outfit = OUTFITS[outfitIdx];
   const walking = pose === "walk" || pose === "runway";
 
-  // ── Load Firestore ────────────────────────────────────────────────────────
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async user => {
       if (!user) { setLoading(false); return; }
@@ -166,7 +180,7 @@ export default function ProfilePage() {
           const daysSober = data.sobrietyDate
             ? Math.floor((Date.now() - new Date(data.sobrietyDate).getTime()) / 86400000) : 0;
           setUserData({ ...data, daysSober });
-          setName(data.name ?? "Friend");
+          setName(data.name ?? "Seeker");
         }
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
@@ -179,22 +193,38 @@ export default function ProfilePage() {
     window.location.href = "/login";
   };
 
-  // ── Achievements ──────────────────────────────────────────────────────────
   const earned = ACHIEVEMENTS.filter(a => userData && a.check(userData));
   const locked = ACHIEVEMENTS.filter(a => !userData || !a.check(userData));
   const pct    = Math.round((earned.length / ACHIEVEMENTS.length) * 100);
   const levelProg = Math.min(100, ((userData?.xp || 0) % 1000) / 10);
 
   if (loading) return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+    <div style={{ background: T.pageBg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: 36, height: 36, border: "3px solid #b8954a", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
   return (
     <>
       <Toaster position="top-center" richColors />
-      <div className="min-h-screen bg-slate-50 pb-28 max-w-lg mx-auto">
+      <style>{`
+        @keyframes pulse{from{opacity:.3;transform:scale(1)}to{opacity:1;transform:scale(1.4)}}
+        @keyframes spin{to{transform:rotate(360deg)}}
+      `}</style>
+
+      <div style={{ background: T.pageBg, minHeight: "100vh", paddingBottom: 112, maxWidth: 480, margin: "0 auto" }}>
+
+        {/* Atmospheric glow */}
+        <div className="fixed inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 35% at 50% 0%, rgba(255,180,60,0.13), transparent 65%)" }} />
+        {/* Sparkles */}
+        <div className="fixed inset-0 pointer-events-none opacity-40">
+          {[{l:"6%",t:"10%"},{l:"88%",t:"16%"},{l:"15%",t:"78%"},{l:"82%",t:"70%"},{l:"50%",t:"5%"}].map((p,i)=>(
+            <div key={i} className="absolute rounded-full"
+              style={{ left:p.l, top:p.t, width:5, height:5, background:i%2===0?"rgba(255,230,140,0.7)":"rgba(180,240,200,0.6)",
+                animation:`pulse ${2.2+i*0.4}s ease-in-out infinite alternate`, animationDelay:`${i*0.35}s` }} />
+          ))}
+        </div>
 
         {/* ── Customizer fullscreen ── */}
         <AnimatePresence>
@@ -202,98 +232,153 @@ export default function ProfilePage() {
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 280 }}
-              className="fixed inset-0 z-50 flex flex-col bg-white"
-              style={{ maxWidth: 480, left: "50%", transform: "translateX(-50%)", width: "100%" }}
+              style={{
+                position: "fixed", inset: 0, zIndex: 50, display: "flex", flexDirection: "column",
+                background: "linear-gradient(180deg, #3d2210 0%, #2d1a0c 100%)",
+                maxWidth: 480, left: "50%", transform: "translateX(-50%)", width: "100%",
+              }}
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0">
-                <button onClick={() => setShowCustomizer(false)} className="w-10 h-10 flex items-center justify-center rounded-2xl bg-slate-100">
-                  <ChevronLeft size={20} className="text-slate-700" />
+              {/* Customizer header */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid rgba(200,160,74,0.18)", flexShrink: 0 }}>
+                <button onClick={() => setShowCustomizer(false)}
+                  style={{ width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, background: "rgba(200,160,74,0.1)", border: "1.5px solid rgba(200,160,74,0.22)", cursor: "pointer", color: T.gold }}>
+                  <ChevronLeft size={20} />
                 </button>
-                <span className="text-lg font-black text-slate-900">Customize Avatar</span>
-                <button onClick={() => { setShowCustomizer(false); toast.success("Avatar saved! 🎉"); }}
-                  className="px-5 py-2.5 bg-slate-900 text-white text-sm font-bold rounded-2xl shadow-lg">Save</button>
+                <span style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.05rem" }}>Forge Your Avatar</span>
+                <button onClick={() => { setShowCustomizer(false); toast.success("Avatar forged! ⚔️"); }}
+                  className="transition-all active:scale-95"
+                  style={{ background: T.woodLight, border: `2px solid ${T.btnBorder}`, borderRadius: 20, padding: "8px 18px", boxShadow: T.btnShadow, color: T.text, fontWeight: 900, fontFamily: "Georgia, serif", fontSize: "0.82rem", cursor: "pointer" }}>
+                  Save
+                </button>
               </div>
-              <div className="relative flex items-end justify-center shrink-0 overflow-hidden"
-                style={{ height: "42vh", minHeight: 240, maxHeight: 340, background: `linear-gradient(160deg, ${av.bg} 0%, #ffffff 100%)` }}>
-                <div className="absolute top-3 right-4 px-3 py-1.5 bg-white/80 backdrop-blur-sm rounded-full text-xs font-bold text-slate-600 shadow-sm flex items-center gap-1.5">
-                  <span>{POSES.find(p => p.id === pose)?.emoji}</span><span>{POSES.find(p => p.id === pose)?.name}</span>
+
+              {/* Avatar preview */}
+              <div style={{ position: "relative", display: "flex", alignItems: "flex-end", justifyContent: "center", flexShrink: 0, overflow: "hidden", height: "38vh", minHeight: 220, maxHeight: 320, background: "linear-gradient(180deg, rgba(200,160,74,0.15), rgba(58,32,16,0.4))" }}>
+                {/* Arch glow behind avatar */}
+                <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 60% 70% at 50% 80%, rgba(255,180,60,0.18), transparent 70%)" }} />
+                <div style={{ position: "absolute", top: 10, right: 16, display: "flex", alignItems: "center", gap: 6, background: "rgba(200,160,74,0.15)", border: "1px solid rgba(200,160,74,0.28)", borderRadius: 99, padding: "4px 10px" }}>
+                  <span>{POSES.find(p => p.id === pose)?.emoji}</span>
+                  <span style={{ fontFamily: "Georgia, serif", fontSize: "0.7rem", color: T.gold }}>{POSES.find(p => p.id === pose)?.name}</span>
                 </div>
-                <div className="mb-2"><HumanAvatar av={av} outfit={outfit} pose={pose} walking={walking} size={280} /></div>
+                <div style={{ marginBottom: 8, position: "relative", zIndex: 1 }}>
+                  <HumanAvatar av={av} outfit={outfit} pose={pose} walking={walking} size={260} />
+                </div>
               </div>
-              <div className="flex gap-2 px-4 py-3 border-b border-slate-100 shrink-0 bg-white">
+
+              {/* Sub-tabs */}
+              <div style={{ display: "flex", gap: 8, padding: "10px 16px", borderBottom: "1px solid rgba(200,160,74,0.15)", flexShrink: 0 }}>
                 {["avatar","outfit","pose"].map(t => (
                   <button key={t} onClick={() => setCustTab(t)}
-                    className={`flex-1 py-3 rounded-2xl text-xs font-black uppercase tracking-wide transition-all ${custTab===t?"bg-slate-900 text-white shadow-lg":"bg-slate-100 text-slate-500"}`}>
+                    style={{
+                      flex: 1, padding: "10px 4px", borderRadius: 14, cursor: "pointer",
+                      fontFamily: "Georgia, serif", fontWeight: 900, fontSize: "0.7rem", letterSpacing: "0.05em", textTransform: "uppercase",
+                      background: custTab === t ? "rgba(200,160,74,0.18)" : "rgba(200,160,74,0.06)",
+                      border: `1.5px solid ${custTab === t ? "rgba(200,160,74,0.4)" : "rgba(200,160,74,0.14)"}`,
+                      color: custTab === t ? T.gold : T.muted,
+                      transition: "all 0.2s",
+                    }}>
                     {t==="avatar"?"👤 Avatar":t==="outfit"?"👗 Outfit":"💃 Pose"}
                   </button>
                 ))}
               </div>
-              <div className="flex-1 overflow-y-auto overscroll-contain bg-slate-50">
-                <div className="px-4 py-5">
-                  {custTab==="avatar" && (
-                    <div>
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Choose your avatar</p>
-                      <div className="grid grid-cols-3 gap-3">
-                        {AVATARS.map((a,i) => (
-                          <motion.button key={a.id} whileTap={{scale:0.93}} onClick={()=>setAvatarIdx(i)}
-                            className={`relative rounded-3xl overflow-hidden border-2 transition-all bg-white ${avatarIdx===i?"border-slate-900 shadow-2xl":"border-slate-100 shadow-sm"}`}>
-                            <div className="pt-3 pb-0 flex flex-col items-center" style={{background:`linear-gradient(160deg,${a.bg},#ffffff)`}}>
-                              <MiniAvatarFace av={a}/><span className="text-xs font-black text-slate-700 mt-1 mb-2">{a.name}</span>
+
+              {/* Scrollable selector */}
+              <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
+                {custTab === "avatar" && (
+                  <div>
+                    <p style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 12 }}>Choose your hero</p>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                      {AVATARS.map((a, i) => (
+                        <motion.button key={a.id} whileTap={{ scale: 0.93 }} onClick={() => setAvatarIdx(i)}
+                          style={{
+                            borderRadius: 18, overflow: "hidden", background: "rgba(200,160,74,0.06)",
+                            border: `2px solid ${avatarIdx === i ? "rgba(200,160,74,0.7)" : "rgba(200,160,74,0.18)"}`,
+                            boxShadow: avatarIdx === i ? "0 0 16px rgba(200,160,74,0.25)" : "none",
+                            cursor: "pointer", position: "relative",
+                          }}>
+                          <div style={{ paddingTop: 10, paddingBottom: 0, display: "flex", flexDirection: "column", alignItems: "center", background: `linear-gradient(160deg,${a.bg}80,rgba(58,32,16,0.3))` }}>
+                            <MiniAvatarFace av={a} />
+                            <span style={{ fontFamily: "Georgia, serif", fontWeight: 700, color: T.goldLight, fontSize: "0.72rem", marginTop: 4, marginBottom: 8 }}>{a.name}</span>
+                          </div>
+                          <div style={{ height: 4, background: `linear-gradient(to right,${a.gradient[0]},${a.gradient[1]})` }} />
+                          {avatarIdx === i && (
+                            <div style={{ position: "absolute", top: 6, right: 6, width: 18, height: 18, background: "#b8954a", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <CheckCircle2 size={11} style={{ color: "#fff" }} />
                             </div>
-                            <div className="h-2" style={{background:`linear-gradient(to right,${a.gradient[0]},${a.gradient[1]})`}}/>
-                            {avatarIdx===i&&<div className="absolute top-2 right-2 w-5 h-5 bg-slate-900 rounded-full flex items-center justify-center shadow-md"><CheckCircle2 size={11} className="text-white"/></div>}
-                          </motion.button>
-                        ))}
-                      </div>
+                          )}
+                        </motion.button>
+                      ))}
                     </div>
-                  )}
-                  {custTab==="outfit" && (
-                    <div>
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Choose outfit</p>
-                      <div className="grid grid-cols-2 gap-3">
-                        {OUTFITS.map((of,i) => (
-                          <motion.button key={of.id} whileTap={{scale:0.96}} onClick={()=>setOutfitIdx(i)}
-                            className={`p-4 rounded-3xl border-2 text-left transition-all bg-white ${outfitIdx===i?"border-slate-900 shadow-xl":"border-slate-100 shadow-sm"}`}>
-                            <div className="flex items-end gap-2 mb-3">
-                              <div className="w-10 h-10 rounded-2xl border border-slate-100 shadow-sm" style={{background:of.top}}/>
-                              <div className="flex flex-col gap-1"><div className="w-10 h-5 rounded-xl border border-slate-100 shadow-sm" style={{background:of.bottom}}/><div className="w-10 h-4 rounded-lg border border-slate-100 shadow-sm" style={{background:of.shoe}}/></div>
+                  </div>
+                )}
+
+                {custTab === "outfit" && (
+                  <div>
+                    <p style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 12 }}>Choose your armor</p>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                      {OUTFITS.map((of, i) => (
+                        <motion.button key={of.id} whileTap={{ scale: 0.96 }} onClick={() => setOutfitIdx(i)}
+                          style={{
+                            padding: 14, borderRadius: 16, textAlign: "left", cursor: "pointer",
+                            background: "rgba(200,160,74,0.06)",
+                            border: `2px solid ${outfitIdx === i ? "rgba(200,160,74,0.65)" : "rgba(200,160,74,0.18)"}`,
+                            boxShadow: outfitIdx === i ? "0 0 16px rgba(200,160,74,0.2)" : "none",
+                          }}>
+                          <div style={{ display: "flex", alignItems: "flex-end", gap: 8, marginBottom: 10 }}>
+                            <div style={{ width: 36, height: 36, borderRadius: 10, background: of.top, border: "1px solid rgba(0,0,0,0.1)" }} />
+                            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                              <div style={{ width: 36, height: 16, borderRadius: 8, background: of.bottom, border: "1px solid rgba(0,0,0,0.1)" }} />
+                              <div style={{ width: 36, height: 12, borderRadius: 6, background: of.shoe, border: "1px solid rgba(0,0,0,0.1)" }} />
                             </div>
-                            <p className="font-black text-sm text-slate-800">{of.name}</p>
-                            {outfitIdx===i&&<div className="flex items-center gap-1 mt-1.5"><CheckCircle2 size={13} className="text-slate-900"/><span className="text-xs text-slate-500 font-semibold">Selected</span></div>}
-                          </motion.button>
-                        ))}
-                      </div>
+                          </div>
+                          <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.82rem" }}>{of.name}</p>
+                          {outfitIdx === i && <p style={{ fontFamily: "Georgia, serif", fontSize: "0.65rem", color: T.gold, marginTop: 3 }}>✓ Equipped</p>}
+                        </motion.button>
+                      ))}
                     </div>
-                  )}
-                  {custTab==="pose" && (
-                    <div>
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Choose pose</p>
-                      <div className="grid grid-cols-2 gap-3">
-                        {POSES.map(p => (
-                          <motion.button key={p.id} whileTap={{scale:0.96}} onClick={()=>setPose(p.id)}
-                            className={`p-5 rounded-3xl border-2 text-left transition-all ${pose===p.id?"border-slate-900 bg-slate-900 shadow-2xl":"border-slate-100 bg-white shadow-sm"}`}>
-                            <div className="text-4xl mb-2">{p.emoji}</div>
-                            <p className={`font-black text-sm ${pose===p.id?"text-white":"text-slate-800"}`}>{p.name}</p>
-                            <p className={`text-xs mt-0.5 ${pose===p.id?"text-slate-300":"text-slate-400"}`}>{p.desc}</p>
-                          </motion.button>
-                        ))}
-                      </div>
+                  </div>
+                )}
+
+                {custTab === "pose" && (
+                  <div>
+                    <p style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 12 }}>Choose your stance</p>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                      {POSES.map(p => (
+                        <motion.button key={p.id} whileTap={{ scale: 0.96 }} onClick={() => setPose(p.id)}
+                          style={{
+                            padding: 18, borderRadius: 16, textAlign: "left", cursor: "pointer",
+                            background: pose === p.id ? "rgba(200,160,74,0.16)" : "rgba(200,160,74,0.05)",
+                            border: `2px solid ${pose === p.id ? "rgba(200,160,74,0.6)" : "rgba(200,160,74,0.15)"}`,
+                            boxShadow: pose === p.id ? "0 0 20px rgba(200,160,74,0.2)" : "none",
+                          }}>
+                          <div style={{ fontSize: "2rem", marginBottom: 8 }}>{p.emoji}</div>
+                          <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.85rem" }}>{p.name}</p>
+                          <p style={{ fontFamily: "Georgia, serif", fontSize: "0.7rem", color: T.muted, marginTop: 2, fontStyle: "italic" }}>{p.desc}</p>
+                        </motion.button>
+                      ))}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* ── Header ── */}
-        <div className="px-5 pt-8 space-y-4">
+        {/* ── Main content ── */}
+        <div className="relative z-10" style={{ padding: "28px 20px 0" }}>
+
           {/* Name row */}
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <motion.button whileTap={{scale:0.92}} onClick={()=>setShowCustomizer(true)}
-                className="relative w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-xl flex items-end justify-center shrink-0"
-                style={{background:`linear-gradient(160deg,${av.bg},#ffffff)`}}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {/* Avatar thumb — wooden frame */}
+              <motion.button whileTap={{ scale: 0.92 }} onClick={() => setShowCustomizer(true)}
+                style={{
+                  position: "relative", width: 56, height: 56, borderRadius: 16, overflow: "hidden", flexShrink: 0,
+                  background: `linear-gradient(160deg, ${av.bg}70, rgba(58,32,16,0.5))`,
+                  border: "2px solid #b8954a",
+                  boxShadow: T.btnShadow,
+                  cursor: "pointer", display: "flex", alignItems: "flex-end", justifyContent: "center",
+                }}>
                 <svg viewBox="80 28 160 175" width="54" height="54">
                   <ellipse cx="160" cy="88" rx="64" ry="68" fill={av.hair}/><ellipse cx="160" cy="118" rx="62" ry="68" fill={av.skin}/>
                   <ellipse cx="160" cy="82" rx="48" ry="26" fill={av.skinLight} opacity="0.5"/>
@@ -305,110 +390,129 @@ export default function ProfilePage() {
                   <path d="M145,161 Q160,175 175,161 Q160,172 145,161Z" fill={av.lip} opacity="0.6"/>
                   <ellipse cx="160" cy="63" rx="64" ry="38" fill={av.hair}/><ellipse cx="160" cy="80" rx="56" ry="20" fill={av.skin}/>
                 </svg>
-                <div className="absolute bottom-1 right-1 w-4 h-4 bg-slate-900 rounded-full flex items-center justify-center">
-                  <Edit3 size={8} className="text-white"/>
+                <div style={{ position: "absolute", bottom: 3, right: 3, width: 16, height: 16, background: "#b8954a", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Edit3 size={8} style={{ color: T.text }} />
                 </div>
               </motion.button>
+
               <div>
-                <h1 className="text-xl font-black text-slate-900 leading-tight">{name}</h1>
-                <p className="text-xs text-slate-400 font-semibold">Level {userData?.level??1} · {av.name}</p>
-                <div className="flex items-center gap-1 mt-0.5">
-                  <Flame size={11} className="text-orange-500"/>
-                  <span className="text-xs font-bold text-orange-500">{userData?.currentStreak??0} day streak</span>
+                <h1 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.15rem", lineHeight: 1.2 }}>{name}</h1>
+                <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.72rem", fontStyle: "italic" }}>Level {userData?.level ?? 1} · {av.name}</p>
+                <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
+                  <span style={{ fontSize: "0.75rem" }}>🔥</span>
+                  <span style={{ fontFamily: "Georgia, serif", fontWeight: 700, color: "#c08060", fontSize: "0.72rem" }}>{userData?.currentStreak ?? 0} day streak</span>
                 </div>
               </div>
             </div>
-            <button onClick={handleLogout} className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center active:scale-95 transition-transform">
-              <LogOut size={15} className="text-slate-500"/>
+
+            {/* Logout */}
+            <button onClick={handleLogout}
+              style={{ width: 38, height: 38, background: "rgba(200,160,74,0.1)", border: "1.5px solid rgba(200,160,74,0.22)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.muted }}>
+              <LogOut size={15} />
             </button>
           </div>
 
-          {/* XP bar */}
-          <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
-                <Star size={11} className="text-yellow-500" fill="currentColor"/>Level {userData?.level??1}
+          {/* XP bar — wooden track */}
+          <div style={{ background: T.cardBg, border: `1.5px solid ${T.cardBorder}`, borderRadius: 16, padding: "14px 16px", marginBottom: 14, boxShadow: "inset 0 1px 0 rgba(255,220,130,0.06)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <span style={{ fontFamily: "Georgia, serif", fontSize: "0.72rem", color: T.gold, display: "flex", alignItems: "center", gap: 4 }}>
+                <Star size={11} style={{ color: "#f0c840" }} fill="#f0c840" /> Level {userData?.level ?? 1}
               </span>
-              <span className="text-xs font-black text-blue-600">{(userData?.xp||0)%1000} / 1000 XP</span>
+              <span style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: "#6ab4d8", fontSize: "0.72rem" }}>{(userData?.xp || 0) % 1000} / 1000 XP</span>
             </div>
-            <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-              <motion.div initial={{width:0}} animate={{width:`${levelProg}%`}} transition={{duration:0.8,ease:"easeOut"}}
-                className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full"/>
+            <div style={{ height: 8, background: "rgba(200,160,74,0.15)", borderRadius: 99, overflow: "hidden", border: "1px solid rgba(200,160,74,0.2)" }}>
+              <motion.div initial={{ width: 0 }} animate={{ width: `${levelProg}%` }} transition={{ duration: 0.9, ease: "easeOut" }}
+                style={{ height: "100%", background: "linear-gradient(90deg, #c8a060, #f0c840)", borderRadius: 99 }} />
             </div>
-            <p className="text-[10px] text-slate-400 mt-1.5 font-semibold">
-              {1000-((userData?.xp||0)%1000)} XP to Level {(userData?.level??1)+1}
+            <p style={{ fontFamily: "Georgia, serif", fontSize: "0.6rem", color: T.muted, marginTop: 5, fontStyle: "italic" }}>
+              {1000 - ((userData?.xp || 0) % 1000)} XP to Level {(userData?.level ?? 1) + 1}
             </p>
           </div>
 
           {/* Avatar preview card */}
-          <motion.button whileTap={{scale:0.985}} onClick={()=>setShowCustomizer(true)}
-            className="w-full rounded-3xl border-2 border-dashed border-slate-200 overflow-hidden text-left"
-            style={{background:`linear-gradient(160deg,${av.bg}90,#ffffff)`}}>
-            <div className="flex items-end gap-0 pl-2 pr-4 pt-2 pb-3">
-              <div className="shrink-0 overflow-hidden" style={{height:110,width:90}}>
-                <HumanAvatar av={av} outfit={outfit} pose={pose} walking={walking} size={200}/>
+          <motion.button whileTap={{ scale: 0.985 }} onClick={() => setShowCustomizer(true)}
+            className="transition-all"
+            style={{
+              width: "100%", borderRadius: 20, border: "2px dashed rgba(200,160,74,0.3)", overflow: "hidden", textAlign: "left", cursor: "pointer",
+              background: `linear-gradient(160deg, ${av.bg}20, rgba(90,52,24,0.5))`,
+              marginBottom: 14,
+            }}>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 0, paddingLeft: 8, paddingRight: 16, paddingTop: 8, paddingBottom: 10 }}>
+              <div style={{ flexShrink: 0, overflow: "hidden", height: 110, width: 88 }}>
+                <HumanAvatar av={av} outfit={outfit} pose={pose} walking={walking} size={200} />
               </div>
-              <div className="flex-1 pb-1">
-                <p className="font-black text-slate-900 text-sm">Your Avatar</p>
-                <p className="text-xs text-slate-500">{av.name} · {outfit.name}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{POSES.find(p2=>p2.id===pose)?.emoji} {POSES.find(p2=>p2.id===pose)?.name}</p>
-                <div className="flex gap-1 mt-2">
-                  {OUTFITS.map((of,i)=>(
-                    <div key={of.id} className={`rounded-full border-2 transition-all ${outfitIdx===i?"border-slate-900":"border-slate-200"}`}
-                      style={{background:of.top,width:outfitIdx===i?14:12,height:outfitIdx===i?14:12}}/>
+              <div style={{ flex: 1, paddingBottom: 4 }}>
+                <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.88rem" }}>Your Avatar</p>
+                <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.72rem", fontStyle: "italic" }}>{av.name} · {outfit.name}</p>
+                <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.7rem", marginTop: 2 }}>
+                  {POSES.find(p2 => p2.id === pose)?.emoji} {POSES.find(p2 => p2.id === pose)?.name}
+                </p>
+                <div style={{ display: "flex", gap: 4, marginTop: 8 }}>
+                  {OUTFITS.map((of, i) => (
+                    <div key={of.id} style={{ width: outfitIdx === i ? 14 : 10, height: outfitIdx === i ? 14 : 10, borderRadius: "50%", background: of.top, border: `2px solid ${outfitIdx === i ? "#b8954a" : "rgba(200,160,74,0.2)"}`, transition: "all 0.2s" }} />
                   ))}
                 </div>
               </div>
-              <div className="flex flex-col items-center gap-1 text-slate-400 pb-2 shrink-0">
-                <Sparkles size={16}/><span className="text-xs font-bold">Edit</span>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: T.muted, paddingBottom: 8, flexShrink: 0 }}>
+                <Sparkles size={15} />
+                <span style={{ fontFamily: "Georgia, serif", fontSize: "0.65rem", fontWeight: 700 }}>Edit</span>
               </div>
             </div>
           </motion.button>
 
           {/* Tabs */}
-          <div className="flex bg-white p-1.5 rounded-2xl border border-slate-100 shadow-sm">
-            {["profile","achievements"].map(tab=>(
-              <button key={tab} onClick={()=>setActiveTab(tab)}
-                className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-wide transition-all ${activeTab===tab?"bg-slate-900 text-white shadow":"text-slate-400"}`}>
-                {tab==="profile"?"📊 Profile":"🏆 Achievements"}
+          <div style={{ display: "flex", background: "rgba(200,160,74,0.08)", border: "1.5px solid rgba(200,160,74,0.18)", borderRadius: 16, padding: 5, marginBottom: 16, gap: 6 }}>
+            {["profile","achievements"].map(tab => (
+              <button key={tab} onClick={() => setActiveTab(tab)}
+                style={{
+                  flex: 1, padding: "11px 8px", borderRadius: 12, cursor: "pointer",
+                  fontFamily: "Georgia, serif", fontWeight: 900, fontSize: "0.72rem",
+                  letterSpacing: "0.05em", textTransform: "uppercase",
+                  background: activeTab === tab ? "rgba(200,160,74,0.2)" : "transparent",
+                  border: activeTab === tab ? "1.5px solid rgba(200,160,74,0.4)" : "1.5px solid transparent",
+                  color: activeTab === tab ? T.gold : T.muted,
+                  transition: "all 0.2s",
+                }}>
+                {tab === "profile" ? "📊 Profile" : "🏆 Feats"}
               </button>
             ))}
           </div>
         </div>
 
         {/* ── Tab bodies ── */}
-        <div className="px-5 pt-4">
+        <div className="relative z-10" style={{ padding: "0 20px" }}>
           <AnimatePresence mode="wait">
 
             {/* PROFILE */}
-            {activeTab==="profile" && (
-              <motion.div key="profile" initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} exit={{opacity:0}} className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+            {activeTab === "profile" && (
+              <motion.div key="profile" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                   {[
-                    {label:"Days Sober",   value:userData?.daysSober??0,              icon:"🧘",color:"text-blue-600"   },
-                    {label:"Total XP",     value:(userData?.xp??0).toLocaleString(),  icon:"⭐",color:"text-yellow-600" },
-                    {label:"Best Streak",  value:`${userData?.longestStreak??0}d`,    icon:"🔥",color:"text-orange-500" },
-                    {label:"Achievements", value:`${earned.length}/${ACHIEVEMENTS.length}`, icon:"🏆",color:"text-purple-600"},
-                  ].map(s=>(
-                    <div key={s.label} className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
-                      <p className="text-xl mb-1">{s.icon}</p>
-                      <p className={`text-xl font-black ${s.color}`}>{s.value}</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">{s.label}</p>
+                    { label: "Days Sober",   value: userData?.daysSober ?? 0,              glyph: "🧘" },
+                    { label: "Total XP",     value: (userData?.xp ?? 0).toLocaleString(), glyph: "⭐" },
+                    { label: "Best Streak",  value: `${userData?.longestStreak ?? 0}d`,    glyph: "🔥" },
+                    { label: "Feats",        value: `${earned.length}/${ACHIEVEMENTS.length}`, glyph: "🏆" },
+                  ].map(s => (
+                    <div key={s.label} style={{ background: T.cardBg, border: `1.5px solid ${T.cardBorder}`, borderRadius: 16, padding: "14px 14px", boxShadow: "inset 0 1px 0 rgba(255,220,130,0.05)" }}>
+                      <p style={{ fontSize: "1.4rem", marginBottom: 5 }}>{s.glyph}</p>
+                      <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.15rem", lineHeight: 1.1 }}>{s.value}</p>
+                      <p style={{ fontFamily: "Georgia, serif", fontSize: "0.6rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 3 }}>{s.label}</p>
                     </div>
                   ))}
                 </div>
+
                 {userData?.riskLevel && (
-                  <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
-                      <Shield size={18} className="text-blue-600"/>
+                  <div style={{ background: T.cardBg, border: `1.5px solid ${T.cardBorder}`, borderRadius: 16, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 40, height: 40, background: "rgba(106,180,216,0.15)", border: "1.5px solid rgba(106,180,216,0.3)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Shield size={18} style={{ color: "#6ab4d8" }} />
                     </div>
                     <div>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Risk Profile</p>
-                      <p className="font-black text-slate-800 text-sm">{userData.riskLevel}</p>
+                      <p style={{ fontFamily: "Georgia, serif", fontSize: "0.6rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>Risk Profile</p>
+                      <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.88rem" }}>{userData.riskLevel}</p>
                     </div>
-                    <div className="ml-auto text-right">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Goal</p>
-                      <p className="font-black text-slate-800 text-sm">{userData?.goalType??"—"}</p>
+                    <div style={{ marginLeft: "auto", textAlign: "right" }}>
+                      <p style={{ fontFamily: "Georgia, serif", fontSize: "0.6rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>Goal</p>
+                      <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.88rem" }}>{userData?.goalType ?? "—"}</p>
                     </div>
                   </div>
                 )}
@@ -416,57 +520,70 @@ export default function ProfilePage() {
             )}
 
             {/* ACHIEVEMENTS */}
-            {activeTab==="achievements" && (
-              <motion.div key="achievements" initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} exit={{opacity:0}} className="space-y-4">
+            {activeTab === "achievements" && (
+              <motion.div key="achievements" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
-                {/* Banner */}
-                <div className="rounded-2xl p-4 relative overflow-hidden"
-                  style={{background:"linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 60%,#0891b2 100%)"}}>
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none"/>
-                  <div className="relative z-10 flex items-center justify-between mb-3">
+                {/* Banner — wooden arch style */}
+                <div style={{
+                  background: "linear-gradient(135deg, rgba(90,52,24,0.9), rgba(58,32,16,0.95))",
+                  border: "2px solid rgba(200,160,74,0.4)",
+                  borderRadius: 20, padding: "18px 18px", position: "relative", overflow: "hidden",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,220,130,0.1)",
+                }}>
+                  <div style={{ position: "absolute", top: -30, right: -30, opacity: 0.06 }}>
+                    <Trophy size={110} style={{ color: "#f0c840" }} />
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, position: "relative", zIndex: 1 }}>
                     <div>
-                      <p className="text-white/60 text-[10px] font-bold uppercase tracking-wide">Unlocked</p>
-                      <p className="text-3xl font-black text-white leading-none">{earned.length}<span className="text-base text-white/50"> / {ACHIEVEMENTS.length}</span></p>
+                      <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.62rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>Feats Unlocked</p>
+                      <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.8rem", lineHeight: 1.1 }}>
+                        {earned.length}<span style={{ fontSize: "1rem", color: T.muted }}>/{ACHIEVEMENTS.length}</span>
+                      </p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-white/60 text-[10px] font-bold uppercase tracking-wide">Completion</p>
-                      <p className="text-3xl font-black text-white leading-none">{pct}%</p>
+                    <div style={{ textAlign: "right" }}>
+                      <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.62rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>Completion</p>
+                      <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.8rem", lineHeight: 1.1 }}>{pct}%</p>
                     </div>
-                    <div className="w-14 h-14 bg-white/15 rounded-2xl flex items-center justify-center">
-                      <Trophy size={28} className="text-yellow-300"/>
+                    <div style={{ width: 52, height: 52, background: "rgba(200,160,74,0.18)", border: "1.5px solid rgba(200,160,74,0.3)", borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Trophy size={26} style={{ color: "#f0c840" }} />
                     </div>
                   </div>
-                  <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                    <motion.div initial={{width:0}} animate={{width:`${pct}%`}} transition={{duration:1,ease:"easeOut"}}
-                      className="h-full bg-white rounded-full"/>
+                  <div style={{ height: 7, background: "rgba(200,160,74,0.15)", borderRadius: 99, overflow: "hidden", border: "1px solid rgba(200,160,74,0.2)", position: "relative", zIndex: 1 }}>
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 1, ease: "easeOut" }}
+                      style={{ height: "100%", background: "linear-gradient(90deg, #c8a060, #f0c840)", borderRadius: 99 }} />
                   </div>
                 </div>
 
-                {/* Earned */}
-                {earned.length>0 && (
+                {/* Earned feats */}
+                {earned.length > 0 && (
                   <div>
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">✅ Unlocked ({earned.length})</p>
-                    <div className="space-y-2.5">
-                      {earned.map((a,i)=>{
-                        const r=RARITY[a.rarity];
+                    <p style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>✅ Unlocked ({earned.length})</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {earned.map((a, i) => {
+                        const r = RARITY_CFG[a.rarity];
                         return (
-                          <motion.div key={a.id} initial={{opacity:0,x:-14}} animate={{opacity:1,x:0}} transition={{delay:i*0.05}}
-                            className={`bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3 ring-2 ${r.ring} ${r.glow}`}>
-                            <div className="w-12 h-12 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                          <motion.div key={a.id} initial={{ opacity: 0, x: -14 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+                            style={{
+                              background: T.cardBg, border: `1.5px solid ${r.color}`,
+                              borderRadius: 16, padding: "14px 14px",
+                              boxShadow: r.glow,
+                              display: "flex", alignItems: "center", gap: 12,
+                            }}>
+                            <div style={{ width: 48, height: 48, background: "rgba(200,160,74,0.1)", border: "1.5px solid rgba(200,160,74,0.22)", borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", flexShrink: 0 }}>
                               {a.icon}
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <p className="font-black text-slate-900 text-sm">{a.name}</p>
-                                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${r.badge}`}>{r.label}</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                                <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.88rem" }}>{a.name}</p>
+                                <span style={{ fontFamily: "Georgia, serif", fontSize: "0.58rem", fontWeight: 700, color: r.color, background: `${r.color}22`, border: `1px solid ${r.color}44`, padding: "1px 6px", borderRadius: 99 }}>{r.label}</span>
                               </div>
-                              <p className="text-xs text-slate-400 mt-0.5">{a.desc}</p>
+                              <p style={{ fontFamily: "Georgia, serif", fontSize: "0.72rem", color: T.muted, marginTop: 2, fontStyle: "italic" }}>{a.desc}</p>
                             </div>
-                            <div className="flex flex-col items-end gap-1 shrink-0">
-                              <div className="w-7 h-7 bg-emerald-100 rounded-full flex items-center justify-center">
-                                <CheckCircle2 size={14} className="text-emerald-600"/>
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flexShrink: 0 }}>
+                              <div style={{ width: 28, height: 28, background: "rgba(122,171,106,0.2)", border: "1.5px solid rgba(122,171,106,0.4)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <CheckCircle2 size={14} style={{ color: "#7aab6a" }} />
                               </div>
-                              <span className="text-[10px] font-black text-yellow-600">+{a.xp} XP</span>
+                              <span style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.gold, fontSize: "0.65rem" }}>+{a.xp} XP</span>
                             </div>
                           </motion.div>
                         );
@@ -475,46 +592,46 @@ export default function ProfilePage() {
                   </div>
                 )}
 
-                {/* Locked */}
-                {locked.length>0 && (
+                {/* Locked feats */}
+                {locked.length > 0 && (
                   <div>
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">🔒 Locked ({locked.length})</p>
-                    <div className="space-y-2.5">
-                      {locked.map((a,i)=>{
-                        const r=RARITY[a.rarity];
-                        return (
-                          <motion.div key={a.id} initial={{opacity:0,x:14}} animate={{opacity:1,x:0}} transition={{delay:i*0.04}}
-                            className="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3 opacity-55">
-                            <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-2xl shrink-0 grayscale">
-                              {a.icon}
+                    <p style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>🔒 Locked ({locked.length})</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {locked.map((a, i) => (
+                        <motion.div key={a.id} initial={{ opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                          style={{
+                            background: "rgba(58,32,16,0.4)", border: "1.5px solid rgba(200,160,74,0.1)",
+                            borderRadius: 16, padding: "14px 14px", opacity: 0.55,
+                            display: "flex", alignItems: "center", gap: 12,
+                          }}>
+                          <div style={{ width: 48, height: 48, background: "rgba(200,160,74,0.05)", border: "1.5px solid rgba(200,160,74,0.1)", borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", flexShrink: 0, filter: "grayscale(1)" }}>
+                            {a.icon}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.muted, fontSize: "0.88rem" }}>{a.name}</p>
+                              <span style={{ fontFamily: "Georgia, serif", fontSize: "0.58rem", fontWeight: 700, color: T.muted, background: "rgba(200,160,74,0.08)", border: "1px solid rgba(200,160,74,0.15)", padding: "1px 6px", borderRadius: 99 }}>{RARITY_CFG[a.rarity].label}</span>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <p className="font-black text-slate-500 text-sm">{a.name}</p>
-                                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${r.badge}`}>{r.label}</span>
-                              </div>
-                              <p className="text-xs text-slate-400 mt-0.5">{a.desc}</p>
+                            <p style={{ fontFamily: "Georgia, serif", fontSize: "0.72rem", color: "rgba(160,120,72,0.6)", marginTop: 2, fontStyle: "italic" }}>{a.desc}</p>
+                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flexShrink: 0 }}>
+                            <div style={{ width: 28, height: 28, background: "rgba(200,160,74,0.06)", border: "1.5px solid rgba(200,160,74,0.15)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <Lock size={12} style={{ color: T.muted }} />
                             </div>
-                            <div className="flex flex-col items-end gap-1 shrink-0">
-                              <div className="w-7 h-7 bg-slate-100 rounded-full flex items-center justify-center">
-                                <Lock size={13} className="text-slate-400"/>
-                              </div>
-                              <span className="text-[10px] font-black text-slate-400">+{a.xp} XP</span>
-                            </div>
-                          </motion.div>
-                        );
-                      })}
+                            <span style={{ fontFamily: "Georgia, serif", fontWeight: 700, color: "rgba(160,120,72,0.5)", fontSize: "0.65rem" }}>+{a.xp} XP</span>
+                          </div>
+                        </motion.div>
+                      ))}
                     </div>
                   </div>
                 )}
-
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </div>
 
-      <BottomNav/>
+      <BottomNav />
     </>
   );
 }
