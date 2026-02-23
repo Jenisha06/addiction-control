@@ -13,10 +13,11 @@ import {
   Smile, Meh, Frown, Angry, Skull,
   CheckCircle2, XCircle, Flame, ArrowLeft,
   Star, Heart, TrendingUp, AlertTriangle, Droplets,
+  Leaf, Waves, CloudRain, Mountain, Moon,
+  Nut, Trees, Apple,
 } from "lucide-react";
 import BottomNav from "../components/BottomNav";
 
-// ─── Theme tokens ─────────────────────────────────────────────────────────────
 const T = {
   gold:       "#c8a060",
   goldLight:  "#f7e0bb",
@@ -33,20 +34,22 @@ const T = {
   btnShadow:  "0 3px 0 #6a4820, 0 4px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,230,160,0.4)",
 };
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
+
+
+
 const EMOTIONS = [
-  { icon: Smile, label: "Great",  value: 5, color: "#7aab6a", glyph: "🌿", accent: "rgba(122,171,106,0.2)",  border: "rgba(122,171,106,0.45)" },
-  { icon: Meh,   label: "Okay",   value: 4, color: "#6ab4d8", glyph: "🌊", accent: "rgba(106,180,216,0.2)",  border: "rgba(106,180,216,0.45)" },
-  { icon: Frown, label: "Low",    value: 3, color: "#c8a060", glyph: "🍂", accent: "rgba(200,160,96,0.2)",   border: "rgba(200,160,96,0.45)"  },
-  { icon: Angry, label: "Tense",  value: 2, color: "#c08060", glyph: "⛰️", accent: "rgba(192,128,96,0.2)",   border: "rgba(192,128,96,0.45)"  },
-  { icon: Skull, label: "Bad",    value: 1, color: "#c06060", glyph: "🌑", accent: "rgba(192,96,96,0.2)",    border: "rgba(192,96,96,0.45)"   },
+  { icon: Smile, label: "Great", value: 5, color: "#7aab6a", glyph: <Leaf size={20} />,     accent: "rgba(122,171,106,0.2)", border: "rgba(122,171,106,0.45)" },
+  { icon: Meh,   label: "Okay",  value: 4, color: "#6ab4d8", glyph: <Waves size={20} />,    accent: "rgba(106,180,216,0.2)", border: "rgba(106,180,216,0.45)" },
+  { icon: Frown, label: "Low",   value: 3, color: "#c8a060", glyph: <CloudRain size={20} />,accent: "rgba(200,160,96,0.2)",  border: "rgba(200,160,96,0.45)" },
+  { icon: Angry, label: "Tense", value: 2, color: "#c08060", glyph: <Mountain size={20} />, accent: "rgba(192,128,96,0.2)",  border: "rgba(192,128,96,0.45)" },
+  { icon: Skull, label: "Bad",   value: 1, color: "#c06060", glyph: <Moon size={20} />,     accent: "rgba(192,96,96,0.2)",   border: "rgba(192,96,96,0.45)" },
 ];
 
 const CRAVING_LABELS = ["", "Very Low", "Low", "Medium", "High", "Intense"];
 const CRAVING_COLORS = ["", "#7aab6a", "#6ab4d8", "#c8a060", "#c08060", "#c06060"];
 const TOTAL_STEPS = 3;
 
-// ─── Tree stage helpers (mirrors profile page) ────────────────────────────────
+
 const STAGE_THRESHOLDS = [0, 1, 3, 6, 10, 15, 21, 30];
 const STAGE_NAMES = ["Seed","Sprout","Seedling","Sapling","Young Tree","Grove Tree","Fruiting Tree","Ancient Grove"];
 
@@ -61,7 +64,7 @@ function getPlantStage(plantDays) {
   return 7;
 }
 
-// ─── Mini Tree SVG for checkin success screen ─────────────────────────────────
+
 function MiniTreeSVG({ stage, watered }) {
   const wt = { duration: 3.5, repeat: Infinity, ease: "easeInOut" };
   const glowColor = watered ? "rgba(106,180,216,0.35)" : "rgba(122,171,106,0.2)";
@@ -151,7 +154,7 @@ function MiniTreeSVG({ stage, watered }) {
     </g>
   );
 
-  // Stage 5+: full lush tree
+  
   return (
     <g>
       <ellipse cx="100" cy="184" rx="88" ry="14" fill="#3d1e08" opacity="0.8"/>
@@ -170,7 +173,7 @@ function MiniTreeSVG({ stage, watered }) {
       <motion.ellipse cx="100" cy="42" rx="48" ry="36" fill="#5a9a40"
         animate={{ scale: [1, 1.03, 1] }} transition={{ ...wt, delay: 0.3 }} style={{ transformOrigin: "100px 42px" }}
       />
-      {/* Fruits for stage 6+ */}
+     
       {stage >= 6 && [{cx:70,cy:46},{cx:92,cy:36},{cx:116,cy:42},{cx:54,cy:70},{cx:132,cy:66}].map((f,i) => (
         <motion.g key={i} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i*0.1, type:"spring" }}
           style={{ transformOrigin: `${f.cx}px ${f.cy}px` }}>
@@ -183,7 +186,7 @@ function MiniTreeSVG({ stage, watered }) {
   );
 }
 
-// ─── Water drop particles ─────────────────────────────────────────────────────
+
 function WaterDrops({ active }) {
   const drops = [
     { x: 80,  delay: 0    },
@@ -212,7 +215,6 @@ function WaterDrops({ active }) {
   );
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 function ProgressBar({ step }) {
   return (
     <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
@@ -239,7 +241,7 @@ function BackButton({ onClick }) {
   );
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
+
 export default function CheckInPage() {
   const router = useRouter();
 
@@ -251,11 +253,21 @@ export default function CheckInPage() {
   const [craving,     setCraving]     = useState(3);
   const [saving,      setSaving]      = useState(false);
 
-  // Tree state
+
   const [plantDays,   setPlantDays]   = useState(0);
   const [watered,     setWatered]     = useState(false);
   const [waterAnim,   setWaterAnim]   = useState(false);
   const [justLeveled, setJustLeveled] = useState(false);
+
+  const stage = getPlantStage(plantDays);
+
+const stageIcon = stage === 0
+  ? <Nut size={18} />
+  : stage <= 2
+  ? <Leaf size={18} />
+  : stage <= 4
+  ? <Trees size={18} />
+  : <Apple size={18} />;
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -294,7 +306,7 @@ export default function CheckInPage() {
           currentStreak:   0,
           lastCheckin:     serverTimestamp(),
           caloriesAvoided: increment(0),
-          // plantDays NOT incremented — tree doesn't grow
+         
         });
       } else {
         const oldStage = getPlantStage(plantDays);
@@ -307,7 +319,7 @@ export default function CheckInPage() {
           currentStreak:   increment(1),
           lastCheckin:     serverTimestamp(),
           caloriesAvoided: increment(150),
-          plantDays:       increment(1),  // 🌱 tree grows!
+          plantDays:       increment(1),  
         });
         setPlantDays(newDays);
       }
@@ -324,7 +336,7 @@ export default function CheckInPage() {
     setTimeout(() => setWaterAnim(false), 2200);
   };
 
-  // ── Loading ───────────────────────────────────────────────────────────────
+  
   if (loadingUser) {
     return (
       <div style={{ background: T.pageBg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -337,7 +349,7 @@ export default function CheckInPage() {
     );
   }
 
-  // ── Already done ──────────────────────────────────────────────────────────
+ 
   if (alreadyDone) {
     return (
       <>
@@ -348,7 +360,10 @@ export default function CheckInPage() {
               <CheckCircle2 size={38} style={{ color: "#7aab6a" }} />
             </div>
             <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.5rem", marginBottom: 10 }}>Quest Already Complete!</h2>
-            <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.85rem", fontStyle: "italic", lineHeight: 1.7, marginBottom: 28 }}>You've completed today's vigil. Return at dawn to keep your streak alive, Seeker. 🔥</p>
+            <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.85rem", fontStyle: "italic", lineHeight: 1.7, marginBottom: 28 }}>You've completed today's vigil.<span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+  Return at dawn to keep your streak alive, Seeker.
+  <Flame size={14} style={{ color: T.gold }} />
+</span></p>
             <button onClick={() => router.push("/dashboard")}
               className="transition-all active:scale-[0.97]"
               style={{ width: "100%", background: T.questBtn, border: "2px solid #1478b0", borderRadius: 24, padding: "14px 20px", boxShadow: T.questShadow, color: "#fff", fontWeight: 900, fontFamily: "Georgia, serif", fontSize: "0.85rem", letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer" }}>
@@ -419,7 +434,9 @@ export default function CheckInPage() {
                           cursor: "pointer", textAlign: "left", transition: "all 0.18s",
                         }}>
                         <div style={{ width: 48, height: 48, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", background: e.accent, border: `1.5px solid ${e.border}`, flexShrink: 0 }}>
-                          <span style={{ fontSize: "1.5rem" }}>{e.glyph}</span>
+                          <div style={{ color: e.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
+  {e.glyph}
+</div>
                         </div>
                         <span style={{ fontFamily: "Georgia, serif", fontWeight: 700, color: selected ? e.color : T.goldLight, fontSize: "1rem" }}>{e.label}</span>
                       </motion.button>
@@ -536,7 +553,10 @@ export default function CheckInPage() {
                   <Flame size={42} style={{ color: "#7aab6a" }} />
                 </motion.div>
 
-                <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.6rem", marginBottom: 6, textAlign: "center" }}>Victory, Seeker! 🎉</h2>
+                <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.6rem", marginBottom: 6, textAlign: "center" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
+  Victory, Seeker!
+  <Star size={18} style={{ color: "#f0c840" }} />
+</span></h2>
                 <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.8rem", fontStyle: "italic", lineHeight: 1.7, marginBottom: 18, maxWidth: 300, textAlign: "center" }}>
                   You held the line today. Every day sober is a rune carved into your legend.
                 </p>
@@ -559,7 +579,9 @@ export default function CheckInPage() {
                       </div>
                       <div style={{ textAlign: "left" }}>
                         <p style={{ fontFamily: "Georgia, serif", fontSize: "0.6rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.1em" }}>Streak</p>
-                        <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.95rem" }}>+1 Day 🔥</p>
+                        <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: 6 }}>
+  +1 Day <Flame size={16} style={{ color: "#c08040" }} />
+</p>
                       </div>
                     </div>
                   </div>
@@ -587,9 +609,10 @@ export default function CheckInPage() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6, marginTop: justLeveled ? 28 : 0 }}>
                     <div>
                       <p style={{ fontFamily: "Georgia, serif", fontSize: "0.58rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 2 }}>Your Grove</p>
-                      <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.9rem" }}>
-                        {getPlantStage(plantDays) === 0 ? "🌰" : getPlantStage(plantDays) <= 2 ? "🌿" : getPlantStage(plantDays) <= 4 ? "🌳" : "🍎"} {STAGE_NAMES[getPlantStage(plantDays)]}
-                      </p>
+                     <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.9rem", display: "flex", alignItems: "center", gap: 8 }}>
+  <span style={{ color: "#7aab6a", display: "inline-flex" }}>{stageIcon}</span>
+  {STAGE_NAMES[stage]}
+</p>
                     </div>
                     <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.gold, fontSize: "0.82rem" }}>{plantDays}d sober</p>
                   </div>

@@ -324,17 +324,15 @@ export default function LoginPage() {
                           </div>
                         </div>
 
-                        <button
-                          type="submit"
-                          disabled={loading}
+                      <button type="submit" disabled={loading}
                           className="group relative mt-2 w-full overflow-hidden rounded-2xl py-4 text-sm font-black tracking-widest text-white shadow-2xl transition active:scale-[0.97] disabled:opacity-60"
-                          style={{ background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)" }}
+                          style={{ background: "linear-gradient(180deg, #5ecef5 0%, #38b6f0 40%, #1a96d8 100%)", boxShadow: "0 4px 0 #0e5c8a, 0 6px 20px rgba(30,140,210,0.4), inset 0 1px 0 rgba(255,255,255,0.4)", border: "2px solid #1478b0" }}
                         >
                           <span className="relative z-10 flex items-center justify-center gap-2">
-                            {loading ? "AUTHENTICATING..." : (
+                            {loading ? "FORGING ACCOUNT..." : (
                               <>
                                 START QUEST
-                                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                                <ArrowRight size={17} className="transition-transform group-hover:translate-x-1 " />
                               </>
                             )}
                           </span>

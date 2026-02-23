@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
+
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../src/lib/firebase";
 import {
@@ -11,13 +11,12 @@ import {
 } from "firebase/firestore";
 import {
   Zap, Brain, Wind, Target, ArrowRight, ChevronRight,
-  Sparkles, Heart, MessageCircle, Loader2, X, Clock,
+  Sparkles, Heart,  Loader2, X, Clock,
   CheckCircle2, Star,
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import BottomNav from "../components/BottomNav";
 
-// ─── Theme tokens ─────────────────────────────────────────────────────────────
 const T = {
   parchment:   "linear-gradient(180deg, #f5e8c8 0%, #ede0b4 100%)",
   wood:        "linear-gradient(180deg, #5a3418 0%, #4a2a12 30%, #3d2210 100%)",
@@ -149,11 +148,11 @@ const RuneLabel = ({ children }) => (
 
 // ─── Exercise definitions ─────────────────────────────────────────────────────
 const EXERCISES = [
-  { id: "trigger",     minLevel: 1, icon: Target,        iconGlyph: "⚔️", title: "Smart Trigger Detective",   subtitle: "AI-powered trigger analysis",           xp: 150, accent: "#b8954a" },
-  { id: "reframing",   minLevel: 1, icon: Brain,         iconGlyph: "🧠", title: "AI Thought Transformer",     subtitle: "Reframe negative thoughts with AI",     xp: 200, accent: "#7aab6a" },
-  { id: "surfing",     minLevel: 1, icon: Wind,          iconGlyph: "🌊", title: "Urge Surfing",               subtitle: "Ride the wave without drowning",         xp: 100, accent: "#9a78c0" },
-  { id: "delay",       minLevel: 1, icon: Clock,         iconGlyph: "⏰", title: "Craving Delay Challenge",    subtitle: "Wait it out — you're stronger than the urge", xp: 130, accent: "#6a8bcc" },
-  { id: "mindfulness", minLevel: 1, icon: Heart,         iconGlyph: "💫", title: "Mindful Breathing",          subtitle: "Ground yourself in the present",         xp: 120, accent: "#c07878" },
+  { id: "trigger",     minLevel: 1, icon: Target,         title: "Smart Trigger Detective",   subtitle: "AI-powered trigger analysis",           xp: 150, accent: "#b8954a" },
+  { id: "reframing",   minLevel: 1, icon: Brain,          title: "AI Thought Transformer",     subtitle: "Reframe negative thoughts with AI",     xp: 200, accent: "#7aab6a" },
+  { id: "surfing",     minLevel: 1, icon: Wind,           title: "Urge Surfing",               subtitle: "Ride the wave without drowning",         xp: 100, accent: "#9a78c0" },
+  { id: "delay",       minLevel: 1, icon: Clock,          title: "Craving Delay Challenge",    subtitle: "Wait it out — you're stronger than the urge", xp: 130, accent: "#6a8bcc" },
+  { id: "mindfulness", minLevel: 1, icon: Heart,          title: "Mindful Breathing",          subtitle: "Ground yourself in the present",         xp: 120, accent: "#c07878" },
 ];
 
 async function callGemini(prompt) {
@@ -186,29 +185,40 @@ function BreathingTimer({ onComplete }) {
   const [running,  setRunning]  = useState(false);
   const timerRef = useRef(null);
 
-  useEffect(() => {
-    if (!running) return;
-    timerRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          setPhaseIdx(pi => {
-            const next = (pi + 1) % PHASES.length;
-            if (next === 0) {
-              setCycles(c => {
-                const done = c + 1;
-                if (done >= 3) { clearInterval(timerRef.current); setRunning(false); setTimeout(onComplete, 600); }
-                return done;
-              });
+ useEffect(() => {
+  if (!running) return;
+
+  timerRef.current = setInterval(() => {
+    setTimeLeft(prev => {
+      if (prev > 1) return prev - 1;
+
+      // move to next phase
+      setPhaseIdx(curr => {
+        const next = (curr + 1) % PHASES.length;
+
+        // if we wrapped around, completed a cycle
+        if (next === 0) {
+          setCycles(c => {
+            const done = c + 1;
+            if (done >= 3) {
+              clearInterval(timerRef.current);
+              setRunning(false);
+              setTimeout(onComplete, 600);
             }
-            return next;
+            return done;
           });
-          return PHASES[(phaseIdx + 1) % PHASES.length].duration;
         }
-        return prev - 1;
+        return next;
       });
-    }, 1000);
-    return () => clearInterval(timerRef.current);
-  }, [running, phaseIdx]);
+
+      
+      const nextIdx = (phaseIdx + 1) % PHASES.length;
+      return PHASES[nextIdx].duration;
+    });
+  }, 1000);
+
+  return () => clearInterval(timerRef.current);
+}, [running, onComplete]); 
 
   const phase = PHASES[phaseIdx];
   const scale = running
@@ -540,7 +550,9 @@ export default function CBTPage() {
         <AnimatePresence mode="wait">
           {step === 0 && (
             <motion.div key="start" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-5 text-center">
-              <div style={{ fontSize: "3rem" }}>⚔️</div>
+              <div style={{ display:"flex", justifyContent:"center" }}>
+  <Target size={34} style={{ color: "#b8954a" }} />
+</div>
               <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.3rem" }}>Let's find your triggers</h2>
               <p style={{ color: T.muted, fontSize: "0.82rem", fontFamily: "Georgia, serif", fontStyle: "italic" }}>3 AI-generated questions to identify your patterns.</p>
               <QuestBtn onClick={loadTriggerQuestions} disabled={aiLoading}>
@@ -579,7 +591,9 @@ export default function CBTPage() {
 
           {step === 2 && (
             <motion.div key="result" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
-              <div style={{ fontSize: "2.5rem", textAlign: "center" }}>🧿</div>
+              <div style={{ display:"flex", justifyContent:"center" }}>
+  <Sparkles size={30} style={{ color: "#b8954a" }} />
+</div>
               <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.15rem", textAlign: "center" }}>Your Trigger Analysis</h2>
               <ParchCard style={{ minHeight: 120, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {aiLoading
@@ -600,7 +614,9 @@ export default function CBTPage() {
         <AnimatePresence mode="wait">
           {step === 0 && (
             <motion.div key="input" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
-              <div style={{ fontSize: "2.5rem", textAlign: "center" }}>🧠</div>
+             <div style={{ display:"flex", justifyContent:"center" }}>
+  <Brain size={30} style={{ color: "#7aab6a" }} />
+</div>
               <div style={{ textAlign: "center" }}>
                 <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.2rem" }}>What's on your mind?</h2>
                 <p style={{ color: T.muted, fontSize: "0.8rem", fontFamily: "Georgia, serif", fontStyle: "italic", marginTop: 4 }}>Share a negative thought and I'll help you see it differently.</p>
@@ -616,7 +632,9 @@ export default function CBTPage() {
           )}
           {step === 1 && (
             <motion.div key="result" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
-              <div style={{ fontSize: "2.5rem", textAlign: "center" }}>✨</div>
+           <div style={{ display:"flex", justifyContent:"center" }}>
+  <Sparkles size={30} style={{ color: "#b8954a" }} />
+</div>
               <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.15rem", textAlign: "center" }}>New Perspective</h2>
               <ParchCard style={{ minHeight: 100, display: "flex", alignItems: "center" }}>
                 {aiLoading
@@ -750,7 +768,10 @@ export default function CBTPage() {
                 fontSize: "1.5rem", position: "relative",
                 boxShadow: "inset 0 1px 0 rgba(255,220,130,0.1)",
               }}>
-                {ex.iconGlyph}
+                {(() => {
+  const Icon = ex.icon;
+  return <Icon size={22} style={{ color: ex.accent }} />;
+})()}
                 {locked && (
                   <span style={{
                     position: "absolute", top: -6, right: -6,

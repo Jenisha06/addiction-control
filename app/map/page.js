@@ -8,12 +8,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Lock, Star, Mountain, Wind, Waves, Home, Trophy,
   CheckCircle2, ChevronRight, Zap, X, AlertTriangle,
-  Flame, ArrowRight,
+  Flame, ArrowRight, Sparkles,
+  TreePine,
+  PhoneCall,
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import BottomNav from "../components/BottomNav";
+import { useRouter } from "next/navigation";
 
-// ─── Theme tokens ─────────────────────────────────────────────────────────────
 const T = {
   gold:      "#c8a060",
   goldLight: "#f7e0bb",
@@ -34,8 +36,8 @@ const T = {
 const LEVELS = [
   {
     id: 1, name: "Awareness Island", description: "Understand your starting point",
-    emoji: "🌊", accentColor: "#6ab4d8", glowColor: "rgba(106,180,216,0.3)",
-    icon: Waves,
+    nodeIcon: Waves, accentColor: "#6ab4d8", glowColor: "rgba(106,180,216,0.3)",
+   
     req: { days: 0, streak: 0, xp: 0 }, xpReward: 200, moduleId: "awareness-island",
     challenge: {
       type: "reflection", title: "Why Do You Want Recovery?",
@@ -46,8 +48,8 @@ const LEVELS = [
   },
   {
     id: 2, name: "Detox Valley", description: "The first 7 days of strength",
-    emoji: "🌿", accentColor: "#7aab6a", glowColor: "rgba(122,171,106,0.3)",
-    icon: Wind,
+    nodeIcon: Wind, accentColor: "#7aab6a", glowColor: "rgba(122,171,106,0.3)",
+    
     req: { days: 3, streak: 2, xp: 100 }, xpReward: 500, moduleId: "detox-valley",
     challenge: {
       type: "breathing", title: "4-7-8 Breathing Exercise",
@@ -57,8 +59,8 @@ const LEVELS = [
   },
   {
     id: 3, name: "Trigger Control", description: "Mastering your environment",
-    emoji: "⛰️", accentColor: "#c8845a", glowColor: "rgba(200,132,90,0.3)",
-    icon: Mountain,
+    nodeIcon: Mountain, accentColor: "#c8845a", glowColor: "rgba(200,132,90,0.3)",
+    
     req: { days: 7, streak: 5, xp: 500 }, xpReward: 800, moduleId: "trigger-control",
     challenge: {
       type: "trigger-map", title: "Map Your Top 3 Triggers",
@@ -69,8 +71,8 @@ const LEVELS = [
   },
   {
     id: 4, name: "Social Strength", description: "New boundaries, new connections",
-    emoji: "🤝", accentColor: "#9a78c0", glowColor: "rgba(154,120,192,0.3)",
-    icon: Home,
+   nodeIcon: Home, accentColor: "#9a78c0", glowColor: "rgba(154,120,192,0.3)",
+   
     req: { days: 21, streak: 7, xp: 2000 }, xpReward: 1200, moduleId: "social-strength",
     challenge: {
       type: "script", title: "Write Your 'No' Script",
@@ -81,8 +83,8 @@ const LEVELS = [
   },
   {
     id: 5, name: "Freedom Peak", description: "Living a life uncontrolled",
-    emoji: "🏆", accentColor: "#c8a060", glowColor: "rgba(200,160,96,0.4)",
-    icon: Trophy,
+    nodeIcon: Trophy, accentColor: "#c8a060", glowColor: "rgba(200,160,96,0.4)",
+   
     req: { days: 60, streak: 14, xp: 5000 }, xpReward: 2000, moduleId: "freedom-peak",
     challenge: {
       type: "commitment", title: "Letter to Your Future Self",
@@ -157,29 +159,41 @@ function BreathingExercise({ onComplete }) {
   const [running,  setRunning]  = useState(false);
   const timerRef = useRef(null);
 
-  useEffect(() => {
-    if (!running) return;
-    timerRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          setPhaseIdx(pi => {
-            const next = (pi + 1) % PHASES.length;
-            if (next === 0) {
-              setCycles(c => {
-                const done = c + 1;
-                if (done >= 3) { clearInterval(timerRef.current); setRunning(false); onComplete(); }
-                return done;
-              });
-            }
-            return next;
-          });
-          return PHASES[(phaseIdx + 1) % PHASES.length].duration;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timerRef.current);
-  }, [running, phaseIdx]);
+useEffect(() => {
+  if (!running) return;
+
+  timerRef.current = setInterval(() => {
+    setTimeLeft((prev) => {
+      if (prev <= 1) {
+        setPhaseIdx((pi) => {
+          const nextIdx = (pi + 1) % PHASES.length;
+
+          // completed one full cycle when we wrap back to 0
+          if (nextIdx === 0) {
+            setCycles((c) => {
+              const done = c + 1;
+              if (done >= 3) {
+                clearInterval(timerRef.current);
+                setRunning(false);
+                onComplete?.();
+              }
+              return done;
+            });
+          }
+
+          // set the next duration safely
+          setTimeLeft(PHASES[nextIdx].duration);
+          return nextIdx;
+        });
+
+        return prev; // temporary; setTimeLeft above will override
+      }
+      return prev - 1;
+    });
+  }, 1000);
+
+  return () => clearInterval(timerRef.current);
+}, [running, onComplete]);
 
   const phase = PHASES[phaseIdx];
   const scale = running ? (phaseIdx === 0 ? 0.7 + (1 - timeLeft / phase.duration) * 0.3 : phaseIdx === 2 ? 1 - (1 - timeLeft / phase.duration) * 0.3 : 1) : 0.5;
@@ -282,7 +296,26 @@ function ChallengeModal({ level, userData, onClose, onComplete }) {
             <X size={15} />
           </button>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ fontSize: "2.2rem" }}>{level.emoji}</div>
+            {(() => {
+  const NodeIcon = level.nodeIcon;
+  return (
+    <div
+      style={{
+        width: 44,
+        height: 44,
+        borderRadius: 14,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(200,160,74,0.12)",
+        border: "1px solid rgba(200,160,74,0.25)",
+        boxShadow: `0 0 18px ${level.glowColor}`,
+      }}
+    >
+      <NodeIcon size={24} style={{ color: level.accentColor }} />
+    </div>
+  );
+})()}
             <div>
               <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.65rem", letterSpacing: "0.12em", textTransform: "uppercase" }}>{level.name}</p>
               <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.05rem", lineHeight: 1.3 }}>{ch.title}</h2>
@@ -399,6 +432,7 @@ function ChallengeModal({ level, userData, onClose, onComplete }) {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function RecoveryMapPage() {
+  const router = useRouter();
   const activeRef = useRef(null);
   const [userData,        setUserData]        = useState(null);
   const [loading,         setLoading]         = useState(true);
@@ -408,7 +442,9 @@ export default function RecoveryMapPage() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user) { setLoading(false); return; }
+      if (!user) { setLoading(false); 
+        router.push("/login");
+        return; }
       try {
         const snap = await getDoc(doc(db, "users", user.uid));
         if (snap.exists()) {
@@ -423,7 +459,7 @@ export default function RecoveryMapPage() {
       finally { setLoading(false); }
     });
     return () => unsub();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (userData && activeRef.current) {
@@ -431,7 +467,8 @@ export default function RecoveryMapPage() {
     }
   }, [userData]);
 
-  if (loading || !userData) return <MapSkeleton />;
+  if (loading) return <MapSkeleton />;
+if (!userData) return null;
 
   const unlockedCount = LEVELS.filter(l => checkUnlock(l, userData).unlocked).length;
   const progressPct   = ((unlockedCount - 1) / (LEVELS.length - 1)) * 100;
@@ -458,7 +495,11 @@ export default function RecoveryMapPage() {
   const submitDaily = async () => {
     if (!dailyInput.trim()) return;
     const today = new Date().toISOString().slice(0, 10);
-    await updateUser({ xp: (userData.xp || 0) + 50, currentStreak: (userData.currentStreak || 0) + 1, dailyQuestDate: today, dailyGratitude: dailyInput });
+   await updateUser({
+  xp: (userData.xp || 0) + 50,
+  dailyQuestDate: today,
+  dailyGratitude: dailyInput,
+});
     setDailyDone(true);
     toast.success("Daily quest complete! +50 XP ⚔️");
   };
@@ -468,9 +509,9 @@ export default function RecoveryMapPage() {
       <Toaster position="top-center" richColors />
       <style>{`@keyframes pulse{from{opacity:.3;transform:scale(1)}to{opacity:1;transform:scale(1.4)}}`}</style>
 
-      {/* Atmospheric glow */}
+     
       <div className="fixed inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 35% at 50% 0%, rgba(255,180,60,0.13), transparent 65%)" }} />
-      {/* Sparkles */}
+     
       <div className="fixed inset-0 pointer-events-none opacity-45">
         {[{l:"6%",t:"10%"},{l:"88%",t:"16%"},{l:"15%",t:"80%"},{l:"82%",t:"72%"},{l:"50%",t:"5%"}].map((p,i)=>(
           <div key={i} className="absolute rounded-full"
@@ -512,12 +553,14 @@ export default function RecoveryMapPage() {
       <div className="relative z-10" style={{ padding: "14px 20px", maxWidth: 480, margin: "0 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
           {[
-            { label: "Days Sober", value: userData.daysSober,                  glyph: "🧘" },
-            { label: "Streak",     value: `${userData.currentStreak || 0}d`,   glyph: "🔥" },
-            { label: "Levels",     value: `${unlockedCount}/${LEVELS.length}`, glyph: "⭐" },
-          ].map(s => (
+  { label: "Days Sober", value: userData.daysSober, Icon: TreePine },
+  { label: "Streak",     value: `${userData.currentStreak || 0}d`, Icon: Flame },
+  { label: "Levels",     value: `${unlockedCount}/${LEVELS.length}`, Icon: Star },
+].map(s => (
             <div key={s.label} style={{ background: T.cardBg, border: `1.5px solid ${T.cardBorder}`, borderRadius: 14, padding: "12px 8px", textAlign: "center", boxShadow: "inset 0 1px 0 rgba(255,220,130,0.05)" }}>
-              <p style={{ fontSize: "1.2rem", marginBottom: 3 }}>{s.glyph}</p>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}>
+  <s.Icon size={20} style={{ color: T.gold }} />
+</div>
               <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1rem" }}>{s.value}</p>
               <p style={{ fontFamily: "Georgia, serif", fontSize: "0.58rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 2 }}>{s.label}</p>
             </div>
@@ -582,7 +625,14 @@ export default function RecoveryMapPage() {
                       transition: "all 0.2s",
                     }}
                   >
-                    {unlocked ? level.emoji : <Lock size={20} style={{ color: "rgba(200,160,74,0.3)" }} />}
+                   {unlocked ? (
+  (() => {
+    const NodeIcon = level.nodeIcon;
+    return <NodeIcon size={28} style={{ color: level.accentColor }} />;
+  })()
+) : (
+  <Lock size={20} style={{ color: "rgba(200,160,74,0.3)" }} />
+)}
                   </motion.button>
 
                   {/* Completed badge */}
@@ -659,7 +709,7 @@ export default function RecoveryMapPage() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <span style={{ fontSize: "1rem" }}>🔥</span>
+            <Flame size={16} style={{ color: "#c08040" }} />
             <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1rem" }}>Daily Gratitude</h2>
             <div style={{ marginLeft: "auto", background: "rgba(200,160,74,0.18)", border: "1px solid rgba(200,160,74,0.3)", borderRadius: 99, padding: "3px 10px" }}>
               <span style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.gold, fontSize: "0.7rem" }}>+50 XP</span>
@@ -668,7 +718,9 @@ export default function RecoveryMapPage() {
 
           {dailyDone ? (
             <div style={{ marginTop: 12, background: "rgba(200,160,74,0.1)", border: "1.5px solid rgba(200,160,74,0.2)", borderRadius: 14, padding: "16px", textAlign: "center" }}>
-              <p style={{ fontSize: "1.8rem", marginBottom: 4 }}>🎉</p>
+             <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}>
+  <Sparkles size={22} style={{ color: "#f0c840" }} />
+</div>
               <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.9rem" }}>Quest complete for today!</p>
               <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.75rem", fontStyle: "italic", marginTop: 3 }}>Return at dawn to continue your streak, Seeker.</p>
             </div>
@@ -718,7 +770,7 @@ export default function RecoveryMapPage() {
             borderRadius: 18, textDecoration: "none",
             fontFamily: "Georgia, serif", fontWeight: 700, fontSize: "0.82rem", color: "#e08080",
           }}>
-          <AlertTriangle size={15} />
+        <PhoneCall size={15} />
           Need help right now? iCall · 9152987821
         </a>
       </div>

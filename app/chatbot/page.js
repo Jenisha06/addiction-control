@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect , useMemo } from "react";
 import { Mic, Send, Loader2, Pause, Play, MicOff, MessageSquare, Radio } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import BottomNav from "../components/BottomNav";
 
-/* ─────────────────────────────────────────
-   3D SVG Robot Avatar
-───────────────────────────────────────── */
+
 function Robot3D({ speaking, listening, idle }) {
   const isTalking = speaking && !idle;
 
@@ -182,9 +181,7 @@ function Robot3D({ speaking, listening, idle }) {
   );
 }
 
-/* ─────────────────────────────────────────
-   Mini Avatar (chat bubbles)
-───────────────────────────────────────── */
+
 function MiniAvatar({ speaking }) {
   return (
     <div className="w-9 h-9 flex-shrink-0">
@@ -220,9 +217,7 @@ function MiniAvatar({ speaking }) {
   );
 }
 
-/* ─────────────────────────────────────────
-   Sound Wave Visualizer
-───────────────────────────────────────── */
+
 function SoundWave({ active }) {
   const bars = Array.from({ length: 20 });
   return (
@@ -242,9 +237,7 @@ function SoundWave({ active }) {
   );
 }
 
-/* ─────────────────────────────────────────
-   MAIN PAGE
-───────────────────────────────────────── */
+
 export default function ChatbotPage() {
   const [mode,         setMode]         = useState(null);
   const [messages,     setMessages]     = useState([
@@ -362,27 +355,39 @@ export default function ChatbotPage() {
     });
   }
 
-  const particles = Array.from({ length: 18 });
+const particles = useMemo(() => {
+  return Array.from({ length: 18 }).map((_, i) => ({
+    id: i,
+    size: Math.random() * 6 + 2,
+    left: `${Math.random() * 100}%`,
+    top: `${Math.random() * 100}%`,
+    color: i % 3 === 0 ? "#f59e0b" : i % 3 === 1 ? "#c8956c" : "#d97706",
+    duration: 5 + Math.random() * 5,
+    delay: Math.random() * 8,
+  }));
+}, []);
 
   return (
-    <div className="min-h-screen w-full flex flex-col"
+    <div  className="min-h-screen w-full flex flex-col overflow-x-hidden"
       style={{ background: "linear-gradient(135deg, #1a0d04 0%, #2d1507 35%, #3d1f0a 60%, #1a0a02 100%)", fontFamily: "'Georgia', 'Palatino Linotype', serif" }}>
 
       {/* Ambient particles */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        {particles.map((_, i) => (
-          <motion.div key={i} className="absolute rounded-full"
-            style={{
-              width:  Math.random() * 6 + 2,
-              height: Math.random() * 6 + 2,
-              left:   `${Math.random() * 100}%`,
-              top:    `${Math.random() * 100}%`,
-              backgroundColor: i % 3 === 0 ? "#f59e0b" : i % 3 === 1 ? "#c8956c" : "#d97706",
-            }}
-            animate={{ opacity: [0, 0.6, 0], y: [0, -80, -160], scale: [0.5, 1, 0] }}
-            transition={{ duration: 5 + Math.random() * 5, repeat: Infinity, delay: Math.random() * 8 }}
-          />
-        ))}
+      {particles.map((p) => (
+  <motion.div
+    key={p.id}
+    className="absolute rounded-full"
+    style={{
+      width: p.size,
+      height: p.size,
+      left: p.left,
+      top: p.top,
+      backgroundColor: p.color,
+    }}
+    animate={{ opacity: [0, 0.6, 0], y: [0, -80, -160], scale: [0.5, 1, 0] }}
+    transition={{ duration: p.duration, repeat: Infinity, delay: p.delay }}
+  />
+))}
         <div style={{ position: "absolute", top: "10%", left: "15%", width: 300, height: 300, background: "radial-gradient(circle, rgba(197,133,80,0.08) 0%, transparent 70%)", borderRadius: "50%" }} />
         <div style={{ position: "absolute", bottom: "15%", right: "10%", width: 400, height: 400, background: "radial-gradient(circle, rgba(180,83,9,0.1) 0%, transparent 70%)", borderRadius: "50%" }} />
       </div>
@@ -623,6 +628,7 @@ export default function ChatbotPage() {
         ::-webkit-scrollbar-thumb { background: rgba(200,149,108,0.25); border-radius: 2px; }
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
+      <BottomNav/>
     </div>
   );
 }

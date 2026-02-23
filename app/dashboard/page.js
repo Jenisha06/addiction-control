@@ -16,7 +16,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../src/lib/firebase";
 import BottomNav from "../components/BottomNav";
 
-// ─── Theme tokens ─────────────────────────────────────────────────────────────
+
 const T = {
   gold:      "#c8a060",
   goldLight: "#f7e0bb",
@@ -29,7 +29,7 @@ const T = {
   pageBg:    "linear-gradient(160deg, #2d1a0c 0%, #3d2210 40%, #2a1808 100%)",
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 function getGreeting() {
   const h = new Date().getHours();
   if (h < 12) return "Good morning";
@@ -37,7 +37,7 @@ function getGreeting() {
   return "Good evening";
 }
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
 function Skeleton({ style = {} }) {
   return (
     <div style={{
@@ -64,7 +64,7 @@ function DashboardSkeleton() {
   );
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+
 function DashboardCard({ title, icon, glyph, onClick }) {
   const [hovered, setHovered] = useState(false);
   return (
@@ -125,7 +125,6 @@ function StatBubble({ glyph, value }) {
   );
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const router = useRouter();
   const [userData,  setUserData]  = useState(null);
@@ -211,18 +210,18 @@ export default function DashboardPage() {
 
   return (
     <div style={{ background: T.pageBg, minHeight: "100vh" }}>
-      {/* Global styles */}
+      
       <style>{`
         @keyframes pulse{from{opacity:.3;transform:scale(1)}to{opacity:1;transform:scale(1.4)}}
         @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
       `}</style>
 
-      {/* Atmospheric glow */}
+      
       <div className="fixed inset-0 pointer-events-none" style={{
         background: "radial-gradient(ellipse 60% 35% at 50% 0%, rgba(255,180,60,0.13), transparent 65%)",
       }} />
 
-      {/* Floating sparkles */}
+   
       <div className="fixed inset-0 pointer-events-none opacity-50">
         {[
           { l:"6%",  t:"10%", c:"rgba(255,230,140,0.8)" },
@@ -246,10 +245,10 @@ export default function DashboardPage() {
         className="relative z-10 max-w-lg mx-auto px-5 pb-32 pt-8 space-y-4"
       >
 
-        {/* ── HEADER ── */}
+       
         <header className="flex justify-between items-start">
           <div className="flex items-center gap-3">
-            {/* Level badge — styled as a wooden shield */}
+            
             <div className="relative shrink-0">
               <div style={{
                 width: 56, height: 56, borderRadius: 14,
@@ -262,15 +261,24 @@ export default function DashboardPage() {
                   {userData.level ?? 1}
                 </span>
               </div>
-              {/* Trophy gem */}
-              <div style={{
-                position: "absolute", top: -6, right: -6,
-                background: "linear-gradient(135deg, #ffd700, #c8a030)",
-                borderRadius: "50%", width: 20, height: 20,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
-                fontSize: "0.6rem",
-              }}>🏆</div>
+             
+             <div
+  style={{
+    position: "absolute",
+    top: -6,
+    right: -6,
+    background: "linear-gradient(135deg, #ffd700, #c8a030)",
+    borderRadius: "50%",
+    width: 20,
+    height: 20,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+  }}
+>
+  <Trophy size={12} color="#3d2410" strokeWidth={2.5} />
+</div>
             </div>
 
             <div>
@@ -278,7 +286,7 @@ export default function DashboardPage() {
               <h1 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.05rem", lineHeight: 1.2 }}>
                 {firstName} ⚔️
               </h1>
-              {/* XP bar — styled as a wooden progress track */}
+             
               <div style={{
                 width: 140, height: 7, borderRadius: 99, overflow: "hidden", marginTop: 6,
                 background: "rgba(200,160,74,0.18)",
@@ -298,8 +306,14 @@ export default function DashboardPage() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end" }}>
-            <StatBubble glyph="🔥" value={`${streak}d`} />
-            <StatBubble glyph="🛡️" value={userData.shieldCount ?? 0} />
+           <StatBubble 
+  glyph={<Flame size={14} strokeWidth={2.2} />} 
+  value={`${streak}d`} 
+/>
+<StatBubble 
+  glyph={<Shield size={14} strokeWidth={2.2} />} 
+  value={userData.shieldCount ?? 0} 
+/>
           </div>
         </header>
 
@@ -315,21 +329,37 @@ export default function DashboardPage() {
             width: 280, height: 280, borderRadius: "50%",
             border: "22px solid rgba(200,160,74,0.08)",
           }} />
-          {/* Warm glow center */}
+         
           <div className="absolute inset-0 pointer-events-none" style={{
             background: "radial-gradient(ellipse 70% 55% at 50% 60%, rgba(255,180,60,0.12), transparent 70%)",
           }} />
 
-          <p style={{ fontFamily: "Georgia, serif", fontSize: "0.65rem", color: T.muted, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16, position: "relative", zIndex: 1 }}>
-            ⚔️ &nbsp;Alcohol Free For
-          </p>
+        <p
+  style={{
+    fontFamily: "Georgia, serif",
+    fontSize: "0.65rem",
+    color: T.muted,
+    letterSpacing: "0.15em",
+    textTransform: "uppercase",
+    marginBottom: 16,
+    position: "relative",
+    zIndex: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  }}
+>
+  <Trophy size={14} strokeWidth={2.3} color={T.muted} />
+  Alcohol Free For
+</p>
 
-          {/* Rune accent */}
+          
           <p style={{ color: "rgba(200,160,74,0.2)", fontSize: "0.65rem", letterSpacing: "0.3em", fontFamily: "serif", marginBottom: 12, position: "relative", zIndex: 1 }}>
             ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚺ
           </p>
 
-          {/* Time blocks */}
+        
           <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 20, position: "relative", zIndex: 1 }}>
             {[
               { v: timeLeft.days,  l: "Days"  },
@@ -361,7 +391,7 @@ export default function DashboardPage() {
             </p>
           )}
 
-          {/* Check-in button */}
+       
           <button
             onClick={() => router.push("/checkin")}
             className="transition-all active:scale-[0.97] active:translate-y-0.5"
@@ -381,19 +411,19 @@ export default function DashboardPage() {
           </button>
         </section>
 
-        {/* ── ACTION GRID ── */}
+       
         <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {[
-            { title: "Recovery Map",  glyph: "🗺️", path: "/map"       },
-            { title: "CBT Exercises", glyph: "🧠", path: "/cbt"       },
-            { title: "Community",     glyph: "🏰", path: "/community" },
-            { title: "Craving Help",  glyph: "⚡", path: "/emergency" },
-          ].map(({ title, glyph, path }) => (
+  { title: "Recovery Map",  glyph: <Map size={20} />, path: "/map" },
+  { title: "CBT Exercises", glyph: <Brain size={20} />, path: "/cbt" },
+  { title: "Community",     glyph: <MessageSquare size={20} />, path: "/community" },
+  { title: "Craving Help",  glyph: <Zap size={20} />, path: "/emergency" },
+].map(({ title, glyph, path }) => (
             <DashboardCard key={path} title={title} glyph={glyph} onClick={() => router.push(path)} />
           ))}
         </section>
 
-        {/* ── INSIGHTS ── */}
+        
         <section>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1rem" }}>
@@ -405,11 +435,25 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {/* Stat mini-cards */}
+         
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
-            <StatMiniCard label="Saved"    value={moneySaved > 0 ? `₹${moneySaved.toLocaleString("en-IN")}` : "₹0"} glyph="💰" />
-            <StatMiniCard label="Calories" value={calories > 999 ? `${(calories / 1000).toFixed(1)}k` : String(calories)} glyph="⚡" />
-            <StatMiniCard label="Health"   value={`${healthScore}%`} glyph="❤️" />
+           <StatMiniCard 
+  label="Saved" 
+  value={moneySaved > 0 ? `₹${moneySaved.toLocaleString("en-IN")}` : "₹0"} 
+  glyph={<DollarSign size={18} />} 
+/>
+
+<StatMiniCard 
+  label="Calories" 
+  value={calories > 999 ? `${(calories / 1000).toFixed(1)}k` : String(calories)} 
+  glyph={<Activity size={18} />} 
+/>
+
+<StatMiniCard 
+  label="Health" 
+  value={`${healthScore}%`} 
+  glyph={<TrendingUp size={18} />} 
+/>
           </div>
 
           {/* Chart card — parchment style */}

@@ -5,19 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../src/lib/firebase";
 import {
-  collection, addDoc, getDocs, doc, getDoc,
+  collection, addDoc,  doc, getDoc,
   updateDoc, arrayUnion, arrayRemove,
   serverTimestamp, orderBy, query, onSnapshot,
 } from "firebase/firestore";
-import {
-  MessageSquare, Heart, Plus, Shield, Sparkles,
-  Search, Smile, X, Send, Loader2,
-  Flame, Star,
-} from "lucide-react";
+import { Heart, Plus, Shield, Search, Smile, X, Send, Loader2  , Waves , Sparkles , MessageSquare , Flame} from "lucide-react";
 import { toast, Toaster } from "sonner";
 import BottomNav from "../components/BottomNav";
 
-// ─── Theme tokens ─────────────────────────────────────────────────────────────
 const T = {
   gold:       "#c8a060",
   goldLight:  "#f7e0bb",
@@ -38,10 +33,10 @@ const T = {
 const TAGS = ["All", "Wins", "Struggles", "Advice", "Question"];
 
 const TAG_CONFIG = {
-  Wins:      { color: "#7aab6a", bg: "rgba(122,171,106,0.15)", border: "rgba(122,171,106,0.35)", glyph: "⚔️" },
-  Struggles: { color: "#c08060", bg: "rgba(192,128,96,0.15)",  border: "rgba(192,128,96,0.35)",  glyph: "🌊" },
-  Advice:    { color: "#6ab4d8", bg: "rgba(106,180,216,0.15)", border: "rgba(106,180,216,0.35)", glyph: "📜" },
-  Question:  { color: "#c8a060", bg: "rgba(200,160,96,0.15)",  border: "rgba(200,160,96,0.35)",  glyph: "🔮" },
+  Wins:      { color: "#7aab6a", bg: "rgba(122,171,106,0.15)", border: "rgba(122,171,106,0.35)", icon: Flame },
+  Struggles: { color: "#c08060", bg: "rgba(192,128,96,0.15)",  border: "rgba(192,128,96,0.35)",  icon: Waves },
+  Advice:    { color: "#6ab4d8", bg: "rgba(106,180,216,0.15)", border: "rgba(106,180,216,0.35)", icon: Sparkles },
+  Question:  { color: "#c8a060", bg: "rgba(200,160,96,0.15)",  border: "rgba(200,160,96,0.35)",  icon: MessageSquare },
 };
 
 const AVATAR_RUNES = ["ᚠ", "ᚢ", "ᚦ", "ᚨ", "ᚱ", "ᚲ", "ᚷ", "ᚺ", "ᚾ", "ᛁ"];
@@ -101,7 +96,7 @@ function NewPostModal({ userData, onClose, onPosted }) {
         level: userData?.level ?? 1, streak: userData?.currentStreak ?? 0,
         createdAt: serverTimestamp(),
       });
-      toast.success("Scroll shared with the fellowship! 📜");
+      toast.success("Scroll shared with the fellowship!");
       onPosted(); onClose();
     } catch (err) {
       console.error(err); toast.error("Couldn't post. Try again.");
@@ -164,7 +159,7 @@ function NewPostModal({ userData, onClose, onPosted }) {
                       color: active ? cfg.color : T.muted,
                       transform: active ? "scale(1.05)" : "scale(1)",
                     }}>
-                    {cfg.glyph} {t}
+                    {cfg.icon && <cfg.icon size={14} style={{ color: cfg.color }} />} {t}
                   </button>
                 );
               })}
@@ -287,12 +282,14 @@ function PostCard({ post, currentUid, onLike, onSupport }) {
             <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
               {post.daysSober > 0 && (
                 <span style={{ fontFamily: "Georgia, serif", fontSize: "0.6rem", color: T.muted, background: "rgba(200,160,74,0.1)", border: "1px solid rgba(200,160,74,0.2)", padding: "1px 6px", borderRadius: 6, display: "flex", alignItems: "center", gap: 3 }}>
-                  🔥 {post.daysSober}d sober
+             <Flame size={12} style={{ color: "#c8a060" }} />
+  {post.daysSober}d sober
                 </span>
               )}
               {post.level > 1 && (
                 <span style={{ fontFamily: "Georgia, serif", fontSize: "0.6rem", color: T.muted, background: "rgba(200,160,74,0.1)", border: "1px solid rgba(200,160,74,0.2)", padding: "1px 6px", borderRadius: 6, display: "flex", alignItems: "center", gap: 3 }}>
-                  ⭐ L{post.level}
+                   <Star size={12} style={{ color: "#c8a060" }} fill="#c8a060" />
+  L{post.level}
                 </span>
               )}
             </div>
@@ -307,7 +304,8 @@ function PostCard({ post, currentUid, onLike, onSupport }) {
             padding: "2px 8px", borderRadius: 99,
             background: tagCfg.bg, border: `1px solid ${tagCfg.border}`, color: tagCfg.color,
           }}>
-            {tagCfg.glyph} {post.tag}
+            {tagCfg.icon && <tagCfg.icon size={12} style={{ color: tagCfg.color, marginRight: 6, display: "inline-block" }} />}
+{post.tag}
           </span>
         </div>
       </div>
@@ -500,7 +498,9 @@ export default function CommunityPage() {
           <><PostSkeleton /><PostSkeleton /><PostSkeleton /></>
         ) : filtered.length === 0 ? (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "60px 20px", textAlign: "center" }}>
-            <div style={{ fontSize: "3rem", marginBottom: 14 }}>📜</div>
+            <div style={{ display:"flex", justifyContent:"center", marginBottom: 14 }}>
+  <MessageSquare size={42} style={{ color: T.gold }} />
+</div>
             <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.1rem", marginBottom: 6 }}>
               {search ? "No scrolls found" : "The fellowship awaits"}
             </p>

@@ -546,15 +546,21 @@ export default function ProfilePage() {
         {/* ── Customizer fullscreen ── */}
         <AnimatePresence>
           {showCustomizer && (
-            <motion.div
-              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 280 }}
-              style={{
-                position: "fixed", inset: 0, zIndex: 50, display: "flex", flexDirection: "column",
-                background: "linear-gradient(180deg, #3d2210 0%, #2d1a0c 100%)",
-                maxWidth: 480, left: "50%", transform: "translateX(-50%)", width: "100%",
-              }}
-            >
+       <motion.div
+  initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+  transition={{ type: "spring", damping: 30, stiffness: 280 }}
+  className="
+    fixed inset-0 z-50 flex flex-col
+    w-screen h-[100dvh] max-w-none
+    left-0 translate-x-0
+    sm:max-w-[480px] sm:left-1/2 sm:-translate-x-1/2
+  "
+  style={{
+    background: "linear-gradient(180deg, #3d2210 0%, #2d1a0c 100%)",
+    overflow: "hidden",
+    paddingBottom: "env(safe-area-inset-bottom)",
+  }}
+>
               {/* Customizer header */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid rgba(200,160,74,0.18)", flexShrink: 0 }}>
                 <button onClick={() => setShowCustomizer(false)}
@@ -570,7 +576,7 @@ export default function ProfilePage() {
               </div>
 
               {/* Avatar preview */}
-              <div style={{ position: "relative", display: "flex", alignItems: "flex-end", justifyContent: "center", flexShrink: 0, overflow: "hidden", height: "38vh", minHeight: 220, maxHeight: 320, background: "linear-gradient(180deg, rgba(200,160,74,0.15), rgba(58,32,16,0.4))" }}>
+              <div style={{ position: "relative", display: "flex", alignItems: "flex-end", justifyContent: "center", flexShrink: 0, overflow: "hidden", height: "42vh", minHeight: 240,  background: "linear-gradient(180deg, rgba(200,160,74,0.15), rgba(58,32,16,0.4))" }}>
                 <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 60% 70% at 50% 80%, rgba(255,180,60,0.18), transparent 70%)" }} />
                 <div style={{ position: "absolute", top: 10, right: 16, display: "flex", alignItems: "center", gap: 6, background: "rgba(200,160,74,0.15)", border: "1px solid rgba(200,160,74,0.28)", borderRadius: 99, padding: "4px 10px" }}>
                   <span>{POSES.find(p => p.id === pose)?.emoji}</span>
