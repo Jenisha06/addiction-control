@@ -2,13 +2,16 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, User, Map, MessageSquare, Brain } from "lucide-react";
+import { Home, User, Map, MessageSquare, Brain , Bot } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Home",      icon: Home,          path: "/dashboard" },
   { label: "Map",       icon: Map,           path: "/map" },
   { label: "CBT",       icon: Brain,         path: "/cbt" },
   { label: "Community", icon: MessageSquare, path: "/community" },
+  {
+    label:"ChatBot", icon:Bot,path:"/chatbot"
+  },
   { label: "Profile",   icon: User,          path: "/profile" },
 ];
 

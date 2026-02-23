@@ -303,14 +303,13 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        {/* ── SOBRIETY TIMER ── */}
         <section style={{
           borderRadius: 22, padding: "24px 20px", textAlign: "center", position: "relative", overflow: "hidden",
           background: "linear-gradient(160deg, #3d2210 0%, #5a3418 50%, #3d2210 100%)",
           border: "2px solid rgba(200,160,74,0.35)",
           boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,220,130,0.12)",
         }}>
-          {/* Decorative arch ring */}
+         
           <div className="absolute pointer-events-none" style={{
             top: -80, left: "50%", transform: "translateX(-50%)",
             width: 280, height: 280, borderRadius: "50%",

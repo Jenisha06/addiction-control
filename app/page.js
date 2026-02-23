@@ -7,237 +7,206 @@ import {
   Zap, Star, Users, Trophy, Heart,
 } from "lucide-react";
 
+// ─── Theme tokens ─────────────────────────────────────────────────────────────
+const T = {
+  gold:       "#c8a060",
+  goldLight:  "#f7e0bb",
+  muted:      "#a07848",
+  text:       "#3d2410",
+  parchment:  "linear-gradient(180deg, #f5e8c8 0%, #ede0b4 100%)",
+  cardBg:     "linear-gradient(135deg, rgba(90,52,24,0.72) 0%, rgba(58,32,16,0.82) 100%)",
+  cardBorder: "rgba(200,160,74,0.28)",
+  pageBg:     "linear-gradient(160deg, #2d1a0c 0%, #3d2210 40%, #2a1808 100%)",
+  questBtn:   "linear-gradient(180deg, #5ecef5 0%, #38b6f0 40%, #1a96d8 100%)",
+  questShadow:"0 4px 0 #0e5c8a, 0 6px 20px rgba(30,140,210,0.4), inset 0 1px 0 rgba(255,255,255,0.4)",
+  woodLight:  "linear-gradient(180deg, #d4b483 0%, #b8955c 50%, #a07840 100%)",
+  btnBorder:  "#8a6030",
+  btnShadow:  "0 3px 0 #6a4820, 0 4px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,230,160,0.4)",
+};
+
 export default function LandingPage() {
   const router = useRouter();
-
-  const handleStart = () => router.push("/login");
-
-  const scrollToHow = () => {
-    document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
-  };
+  const handleStart   = () => router.push("/login");
+  const scrollToHow   = () => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 text-slate-800 overflow-x-hidden">
+    <div style={{ background: T.pageBg, minHeight: "100vh", overflowX: "hidden" }}>
+      <style>{`
+        @keyframes pulse{from{opacity:.3;transform:scale(1)}to{opacity:1;transform:scale(1.4)}}
+        @keyframes floatUp{from{opacity:0;transform:translateY(0)}to{opacity:0;transform:translateY(-120px)}}
+        * { box-sizing: border-box; }
+      `}</style>
+
+      {/* Atmospheric glow */}
+      <div className="fixed inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 40% at 50% 0%, rgba(255,180,60,0.15), transparent 60%)" }} />
+
+      {/* Sparkles */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-40">
+        {[{l:"5%",d:0},{l:"20%",d:1.2},{l:"45%",d:0.6},{l:"70%",d:1.8},{l:"88%",d:0.3},{l:"60%",d:2.2},{l:"33%",d:1.5}].map((p,i)=>(
+          <div key={i} style={{ position:"absolute", left:p.l, top:`${10+i*12}%`, width:4, height:4, borderRadius:"50%", background:i%2===0?"rgba(255,230,140,0.8)":"rgba(180,240,200,0.7)", animation:`pulse ${2+p.d}s ease-in-out infinite alternate`, animationDelay:`${p.d}s` }} />
+        ))}
+      </div>
 
       {/* ── HEADER ── */}
-      <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-slate-100 px-5 py-4">
-        <div className="flex justify-between items-center max-w-xl mx-auto w-full">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-200">
-              <Shield size={20} />
+      <header style={{ position: "sticky", top: 0, zIndex: 40, background: "linear-gradient(180deg, rgba(45,26,12,0.97), rgba(45,26,12,0.93))", borderBottom: "1px solid rgba(200,160,74,0.18)", backdropFilter: "blur(14px)", padding: "14px 20px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", maxWidth: 560, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 36, height: 36, background: "rgba(200,160,74,0.15)", border: "1.5px solid rgba(200,160,74,0.35)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 14px rgba(200,160,74,0.18)" }}>
+              <Shield size={18} style={{ color: T.gold }} />
             </div>
-            <span className="text-lg font-black tracking-tight text-blue-900">Control.</span>
+            <span style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.15rem", letterSpacing: "0.02em" }}>Control.</span>
           </div>
-          <button
-            onClick={handleStart}
-            className="bg-white border border-slate-200 px-5 py-2 rounded-full text-sm font-semibold hover:bg-blue-50 hover:border-blue-300 transition-all shadow-sm"
-          >
+          <button onClick={handleStart} className="transition-all active:scale-[0.97]"
+            style={{ background: "rgba(200,160,74,0.1)", border: "1.5px solid rgba(200,160,74,0.3)", borderRadius: 99, padding: "8px 18px", fontFamily: "Georgia, serif", fontWeight: 700, color: T.gold, fontSize: "0.8rem", cursor: "pointer" }}>
             Log In
           </button>
         </div>
       </header>
 
       {/* ── HERO ── */}
-      <section className="px-5 pt-12 pb-10 max-w-xl mx-auto">
+      <section style={{ padding: "44px 20px 32px", maxWidth: 560, margin: "0 auto", position: "relative", zIndex: 1 }}>
 
         {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 px-4 py-1.5 rounded-full text-blue-700 text-xs font-bold uppercase tracking-wide mb-6"
-        >
-          <Star size={12} fill="currentColor" /> #1 Recovery Companion
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(200,160,74,0.15)", border: "1.5px solid rgba(200,160,74,0.35)", borderRadius: 99, padding: "6px 14px", marginBottom: 20 }}>
+          <Star size={11} style={{ color: T.gold }} fill={T.gold} />
+          <span style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.gold, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.15em" }}>#1 Recovery Companion</span>
         </motion.div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="text-4xl sm:text-5xl font-extrabold text-blue-950 leading-[1.15] mb-4"
-        >
+        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+          style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "clamp(2rem, 8vw, 2.8rem)", lineHeight: 1.15, marginBottom: 14 }}>
           Take Back{" "}
-          <span className="text-blue-600">Control.</span>
+          <span style={{ color: "#6ab4d8" }}>Control.</span>
           <br />
           One Day at a Time.
         </motion.h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="text-base sm:text-lg text-slate-500 mb-8 leading-relaxed"
-        >
-          A gamified recovery journey for alcohol addiction. Transform your
-          path to sobriety into an adventure of growth and self-discovery.
+        <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.95rem", lineHeight: 1.75, fontStyle: "italic", marginBottom: 24 }}>
+          A gamified recovery journey for alcohol addiction. Transform your path to sobriety into an adventure of growth and self-discovery.
         </motion.p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="flex flex-col gap-3"
-        >
-          <button
-            onClick={handleStart}
-            className="w-full bg-blue-600 text-white px-6 py-4 rounded-2xl font-bold text-base hover:bg-blue-700 active:scale-95 transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2 group"
-          >
-            Start My Recovery
-            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+          style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <button onClick={handleStart} className="transition-all active:scale-[0.97] group"
+            style={{ width: "100%", background: T.questBtn, border: "2px solid #1478b0", borderRadius: 20, padding: "15px 20px", boxShadow: T.questShadow, color: "#fff", fontWeight: 900, fontFamily: "Georgia, serif", fontSize: "0.95rem", letterSpacing: "0.08em", textTransform: "uppercase", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            Begin My Quest
+            <ArrowRight size={17} className="group-hover:translate-x-1 transition-transform" />
           </button>
-
-          <button
-            onClick={scrollToHow}
-            className="w-full bg-white text-slate-700 border border-slate-200 px-6 py-4 rounded-2xl font-bold text-base hover:border-blue-300 active:scale-95 transition-all shadow-sm"
-          >
-            Learn How It Works
+          <button onClick={scrollToHow} className="transition-all active:scale-[0.97]"
+            style={{ width: "100%", background: T.woodLight, border: `2px solid ${T.btnBorder}`, borderRadius: 20, padding: "13px 20px", boxShadow: T.btnShadow, color: T.text, fontWeight: 900, fontFamily: "Georgia, serif", fontSize: "0.88rem", letterSpacing: "0.06em", cursor: "pointer" }}>
+            How It Works
           </button>
         </motion.div>
 
-        {/* Hero Visual Card */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="mt-10 relative"
-        >
-          {/* Main visual */}
-          <div
-            className="w-full rounded-3xl overflow-hidden border-4 border-white shadow-2xl"
-            style={{
-              background: "linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 40%, #0891b2 70%, #10b981 100%)",
-              minHeight: 220,
-            }}
-          >
-            {/* Decorative circles */}
-            <div className="relative p-8 flex flex-col items-center justify-center min-h-[220px]">
-              <div className="absolute top-4 right-4 w-28 h-28 rounded-full bg-white/10" />
-              <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full bg-white/5" />
-              <div className="absolute top-8 left-8 w-16 h-16 rounded-full bg-blue-300/20" />
+        {/* ── Hero visual card ── */}
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.5 }}
+          style={{ marginTop: 32, position: "relative" }}>
+          {/* Main card */}
+          <div style={{ width: "100%", borderRadius: 24, overflow: "hidden", border: "2px solid rgba(200,160,74,0.35)", boxShadow: "0 16px 48px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,220,130,0.08)", background: "linear-gradient(135deg, rgba(60,30,10,0.95) 0%, rgba(40,20,8,0.98) 100%)", minHeight: 200 }}>
+            {/* Arch glow inside */}
+            <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(200,160,74,0.14), transparent 65%)", pointerEvents: "none" }} />
+            {/* Rune ring decoration */}
+            <div style={{ position: "absolute", top: -60, left: "50%", transform: "translateX(-50%)", width: 300, height: 300, borderRadius: "50%", border: "20px solid rgba(200,160,74,0.08)", pointerEvents: "none" }} />
 
+            <div style={{ padding: "32px 24px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 200, position: "relative", zIndex: 1 }}>
               {/* Stats row */}
-              <div className="relative z-10 flex items-center gap-6">
+              <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
                 {[
-                  { num: "14", label: "Days Clean", icon: <CheckCircle2 size={16} /> },
-                  { num: "2.4k", label: "XP Earned", icon: <Zap size={16} /> },
-                  { num: "Lv 5", label: "Recovery", icon: <Trophy size={16} /> },
+                  { num: "14",  label: "Days Clean", glyph: "✅" },
+                  { num: "2.4k",label: "XP Earned",  glyph: "⚡" },
+                  { num: "Lv 5",label: "Recovery",   glyph: "🏆" },
                 ].map((s, i) => (
-                  <div key={i} className="text-center text-white">
-                    <div className="flex items-center justify-center gap-1 opacity-70 mb-1">{s.icon}<span className="text-xs uppercase tracking-wide">{s.label}</span></div>
-                    <div className="text-2xl font-black">{s.num}</div>
+                  <div key={i} style={{ textAlign: "center" }}>
+                    <div style={{ fontFamily: "Georgia, serif", fontSize: "0.6rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                      <span>{s.glyph}</span><span>{s.label}</span>
+                    </div>
+                    <div style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.5rem" }}>{s.num}</div>
                   </div>
                 ))}
               </div>
 
-              {/* Progress bar */}
-              <div className="relative z-10 mt-6 w-full max-w-[260px]">
-                <div className="flex justify-between text-white/70 text-xs mb-1.5">
-                  <span>Level 5</span><span>2,400 / 5,000 XP</span>
+              {/* XP bar */}
+              <div style={{ marginTop: 20, width: "100%", maxWidth: 260 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                  <span style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: T.muted }}>Level 5</span>
+                  <span style={{ fontFamily: "Georgia, serif", fontSize: "0.62rem", color: T.muted }}>2,400 / 5,000 XP</span>
                 </div>
-                <div className="h-2.5 bg-white/20 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: "48%" }}
-                    transition={{ delay: 0.6, duration: 1, ease: "easeOut" }}
-                    className="h-full bg-white rounded-full"
-                  />
+                <div style={{ height: 8, background: "rgba(200,160,74,0.15)", borderRadius: 99, overflow: "hidden", border: "1px solid rgba(200,160,74,0.2)" }}>
+                  <motion.div initial={{ width: 0 }} animate={{ width: "48%" }} transition={{ delay: 0.6, duration: 1, ease: "easeOut" }}
+                    style={{ height: "100%", background: "linear-gradient(90deg, #c8a060, #f0c840)", borderRadius: 99 }} />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Floating badge */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.7 }}
-            className="absolute -bottom-4 -left-2 bg-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-100"
-          >
-            <div className="bg-emerald-100 p-1.5 rounded-lg text-emerald-600">
-              <CheckCircle2 size={18} />
+          {/* Floating badge left */}
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.7 }}
+            style={{ position: "absolute", bottom: -18, left: -8, background: T.parchment, border: "2px solid #b8954a", borderRadius: 16, padding: "10px 14px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)", display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ background: "rgba(122,171,106,0.2)", border: "1.5px solid rgba(122,171,106,0.4)", borderRadius: 10, padding: 6 }}>
+              <CheckCircle2 size={16} style={{ color: "#7aab6a" }} />
             </div>
             <div>
-              <p className="text-[10px] text-slate-400 font-bold uppercase">Today's streak</p>
-              <p className="text-sm font-black text-slate-800">14 Days Clean 🔥</p>
+              <p style={{ fontFamily: "Georgia, serif", fontSize: "0.55rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 1 }}>Today's streak</p>
+              <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.text, fontSize: "0.82rem" }}>14 Days Clean 🔥</p>
             </div>
           </motion.div>
 
           {/* Floating badge right */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.85 }}
-            className="absolute -bottom-4 -right-2 bg-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-100"
-          >
-            <div className="bg-blue-100 p-1.5 rounded-lg text-blue-600">
-              <Trophy size={18} />
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.85 }}
+            style={{ position: "absolute", bottom: -18, right: -8, background: T.parchment, border: "2px solid #b8954a", borderRadius: 16, padding: "10px 14px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)", display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ background: "rgba(106,180,216,0.2)", border: "1.5px solid rgba(106,180,216,0.4)", borderRadius: 10, padding: 6 }}>
+              <Trophy size={16} style={{ color: "#6ab4d8" }} />
             </div>
             <div>
-              <p className="text-[10px] text-slate-400 font-bold uppercase">Achievement</p>
-              <p className="text-sm font-black text-slate-800">2 Week Warrior</p>
+              <p style={{ fontFamily: "Georgia, serif", fontSize: "0.55rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 1 }}>Achievement</p>
+              <p style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.text, fontSize: "0.82rem" }}>2 Week Warrior</p>
             </div>
           </motion.div>
         </motion.div>
       </section>
 
       {/* ── STATS ── */}
-      <section className="px-5 pt-14 pb-6 max-w-xl mx-auto">
-        <div className="grid grid-cols-3 gap-3">
+      <section style={{ padding: "52px 20px 24px", maxWidth: 560, margin: "0 auto", position: "relative", zIndex: 1 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
           {[
-            { num: "10k+", label: "Recoveries", icon: <Heart size={18} className="text-rose-500" /> },
-            { num: "94%",  label: "Success Rate", icon: <Star size={18} className="text-amber-500" /> },
-            { num: "50k+", label: "Days Sober", icon: <Shield size={18} className="text-blue-500" /> },
+            { num: "10k+", label: "Recoveries", glyph: "❤️", accent: "#c06060" },
+            { num: "94%",  label: "Success Rate", glyph: "⭐", accent: "#c8a060" },
+            { num: "50k+", label: "Days Sober",   glyph: "🛡️", accent: "#6ab4d8" },
           ].map((s, i) => (
-            <div key={i} className="bg-white rounded-2xl p-4 text-center shadow-sm border border-slate-100">
-              <div className="flex justify-center mb-1">{s.icon}</div>
-              <div className="text-xl font-black text-slate-900">{s.num}</div>
-              <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">{s.label}</div>
+            <div key={i} style={{ background: T.cardBg, border: `1.5px solid ${s.accent}35`, borderRadius: 16, padding: "14px 10px", textAlign: "center", boxShadow: `0 0 14px ${s.accent}10` }}>
+              <div style={{ fontSize: "1.3rem", marginBottom: 5 }}>{s.glyph}</div>
+              <div style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.2rem" }}>{s.num}</div>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "0.58rem", color: T.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 2 }}>{s.label}</div>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section id="how-it-works" className="px-5 py-12 max-w-xl mx-auto">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2">How It Works</h2>
-          <div className="w-12 h-1 bg-blue-600 mx-auto rounded-full" />
+      <section id="how-it-works" style={{ padding: "32px 20px 32px", maxWidth: 560, margin: "0 auto", position: "relative", zIndex: 1 }}>
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.5rem", marginBottom: 10 }}>How It Works</h2>
+          <div style={{ width: 48, height: 4, background: "linear-gradient(90deg, #c8a060, #f0c840)", borderRadius: 99, margin: "0 auto" }} />
+          <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.72rem", fontStyle: "italic", marginTop: 6 }}>ᚠ ᚢ ᚦ — three steps to forge your legend</p>
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {[
-            {
-              icon: <HelpCircle size={26} />,
-              title: "1. Assess Yourself",
-              desc: "Identify your current stage and triggers with our interactive assessment.",
-              color: "text-blue-600 bg-blue-50",
-            },
-            {
-              icon: <Zap size={26} />,
-              title: "2. Build Strength",
-              desc: "Complete daily quests, CBT exercises, and earn XP to level up your resilience.",
-              color: "text-emerald-600 bg-emerald-50",
-            },
-            {
-              icon: <Shield size={26} />,
-              title: "3. Stay Free",
-              desc: "Connect with an anonymous community and unlock recovery milestones.",
-              color: "text-purple-600 bg-purple-50",
-            },
+            { icon: <HelpCircle size={24} />, title: "1. Assess Yourself",  desc: "Identify your current stage and triggers with our interactive assessment.",                              glyph: "🔮", accent: "#6ab4d8" },
+            { icon: <Zap size={24} />,        title: "2. Build Strength",   desc: "Complete daily quests, CBT exercises, and earn XP to level up your resilience.",                        glyph: "⚡", accent: "#7aab6a" },
+            { icon: <Shield size={24} />,     title: "3. Stay Free",        desc: "Connect with an anonymous fellowship and unlock recovery milestones on your legend map.",               glyph: "🛡️", accent: "#9a78c0" },
           ].map((item, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="flex items-start gap-4 p-5 bg-white rounded-3xl shadow-sm border border-slate-100"
-            >
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${item.color}`}>
-                {item.icon}
+            <motion.div key={i}
+              initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+              style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "16px 16px", background: T.cardBg, border: `1.5px solid ${item.accent}35`, borderRadius: 18, boxShadow: `0 0 16px ${item.accent}10` }}>
+              <div style={{ width: 48, height: 48, background: `${item.accent}20`, border: `1.5px solid ${item.accent}45`, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: "1.4rem" }}>
+                {item.glyph}
               </div>
               <div>
-                <h3 className="text-base font-bold mb-1">{item.title}</h3>
-                <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
+                <h3 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "0.95rem", marginBottom: 5 }}>{item.title}</h3>
+                <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.78rem", lineHeight: 1.65, fontStyle: "italic" }}>{item.desc}</p>
               </div>
             </motion.div>
           ))}
@@ -245,23 +214,26 @@ export default function LandingPage() {
       </section>
 
       {/* ── TESTIMONIAL ── */}
-      <section className="px-5 pb-12 max-w-xl mx-auto">
-        <div className="bg-blue-600 rounded-3xl p-6 text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-4 w-20 h-20 bg-white/5 rounded-full translate-y-1/2" />
-          <div className="relative z-10">
-            <div className="flex gap-1 mb-3">
-              {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="white" className="text-white" />)}
+      <section style={{ padding: "0 20px 32px", maxWidth: 560, margin: "0 auto", position: "relative", zIndex: 1 }}>
+        <div style={{ background: "linear-gradient(135deg, rgba(60,32,12,0.95), rgba(40,20,8,0.98))", border: "2px solid rgba(200,160,74,0.4)", borderRadius: 22, padding: "22px 20px", position: "relative", overflow: "hidden", boxShadow: "0 12px 36px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,220,130,0.1)" }}>
+          {/* Arch glow */}
+          <div style={{ position: "absolute", top: 0, right: 0, width: 130, height: 130, borderRadius: "50%", background: "rgba(200,160,74,0.06)", transform: "translate(50%, -50%)", pointerEvents: "none" }} />
+          <div style={{ position: "relative", zIndex: 1 }}>
+            {/* Stars */}
+            <div style={{ display: "flex", gap: 3, marginBottom: 12 }}>
+              {[...Array(5)].map((_, i) => <Star key={i} size={13} fill={T.gold} style={{ color: T.gold }} />)}
             </div>
-            <p className="text-sm leading-relaxed mb-4 text-blue-100">
-              "This app changed my life. The gamification made recovery feel achievable day by day. 
-              47 days clean and counting!"
+            <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.82rem", lineHeight: 1.8, fontStyle: "italic", marginBottom: 16 }}>
+              "This quest changed my life. The gamification made recovery feel achievable day by day. 47 days clean and counting!"
             </p>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-xs font-bold">A</div>
+            {/* User */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 34, height: 34, background: "rgba(200,160,74,0.18)", border: "1.5px solid rgba(200,160,74,0.35)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.gold, fontSize: "0.85rem" }}>A</span>
+              </div>
               <div>
-                <p className="text-xs font-bold">Anonymous User</p>
-                <p className="text-xs text-blue-200">47 days sober 🎉</p>
+                <p style={{ fontFamily: "Georgia, serif", fontWeight: 700, color: T.goldLight, fontSize: "0.78rem" }}>Anonymous Seeker</p>
+                <p style={{ fontFamily: "Georgia, serif", fontSize: "0.65rem", color: T.muted, fontStyle: "italic" }}>47 days sober 🎉</p>
               </div>
             </div>
           </div>
@@ -269,32 +241,27 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="px-5 pb-16 max-w-xl mx-auto">
-        <div className="text-center">
-          <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Ready to start?</h2>
-          <p className="text-slate-500 text-sm mb-6">It's free, anonymous and takes 2 minutes.</p>
-          <button
-            onClick={handleStart}
-            className="w-full bg-blue-600 text-white px-6 py-4 rounded-2xl font-bold text-base hover:bg-blue-700 active:scale-95 transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2 group"
-          >
-            Get Started Free
-            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-          </button>
-          <div className="flex items-center justify-center gap-2 mt-4 text-xs text-slate-400">
-            <Users size={12} />
-            <span>Join 10,000+ people on their recovery journey</span>
-          </div>
+      <section style={{ padding: "0 20px 48px", maxWidth: 560, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 1 }}>
+        <h2 style={{ fontFamily: "Georgia, serif", fontWeight: 900, color: T.goldLight, fontSize: "1.4rem", marginBottom: 8 }}>Ready to begin your legend?</h2>
+        <p style={{ fontFamily: "Georgia, serif", color: T.muted, fontSize: "0.78rem", fontStyle: "italic", marginBottom: 20 }}>Free, anonymous, and takes 2 minutes to start.</p>
+        <button onClick={handleStart} className="transition-all active:scale-[0.97] group"
+          style={{ width: "100%", background: T.questBtn, border: "2px solid #1478b0", borderRadius: 20, padding: "15px 20px", boxShadow: T.questShadow, color: "#fff", fontWeight: 900, fontFamily: "Georgia, serif", fontSize: "0.95rem", letterSpacing: "0.08em", textTransform: "uppercase", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 14 }}>
+          Get Started Free
+          <ArrowRight size={17} className="group-hover:translate-x-1 transition-transform" />
+        </button>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          <Users size={11} style={{ color: T.muted }} />
+          <span style={{ fontFamily: "Georgia, serif", fontSize: "0.7rem", color: T.muted, fontStyle: "italic" }}>Join 10,000+ seekers on their recovery journey</span>
         </div>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="px-5 py-8 border-t border-slate-100 text-center max-w-xl mx-auto">
-        <p className="text-xs text-slate-400">© 2026 Control Recovery. Built with ❤️ for Hackathon.</p>
-        <a
-          href="tel:+911800-11-0031"
-          className="inline-flex items-center gap-1.5 mt-3 text-xs font-semibold text-rose-500 bg-rose-50 px-4 py-2 rounded-full border border-rose-100"
-        >
-          🚨 Emergency Helpline — iCall: 9152987821
+      <footer style={{ padding: "20px 20px 32px", borderTop: "1px solid rgba(200,160,74,0.18)", textAlign: "center", maxWidth: 560, margin: "0 auto", position: "relative", zIndex: 1 }}>
+        <p style={{ fontFamily: "Georgia, serif", fontSize: "0.65rem", color: T.muted, marginBottom: 12 }}>© 2026 Control Recovery. Built with ❤️ for Hackathon.</p>
+        <p style={{ fontFamily: "Georgia, serif", fontSize: "0.6rem", color: "rgba(200,160,74,0.25)", letterSpacing: "0.18em", marginBottom: 12 }}>ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ</p>
+        <a href="tel:+919152987821"
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(192,96,96,0.12)", border: "1.5px solid rgba(192,96,96,0.3)", borderRadius: 99, padding: "8px 16px", fontFamily: "Georgia, serif", fontWeight: 700, color: "#c06060", fontSize: "0.72rem", textDecoration: "none" }}>
+          🚨 Emergency: iCall · 9152987821
         </a>
       </footer>
 

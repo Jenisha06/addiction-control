@@ -99,7 +99,7 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black">
-      {/* ── Background image with Ken Burns + Exit Zoom Effect ── */}
+    
       <motion.div
         initial={{ scale: 1.1, opacity: 0 }}
         animate={isSuccess 
@@ -291,7 +291,7 @@ export default function LoginPage() {
                             <input
                               type="email"
                               placeholder="you@example.com"
-                              className="w-full rounded-2xl border border-white/10 bg-black/30 py-3.5 pl-11 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition focus:border-[#ffd692]/40 focus:bg-black/40"
+                              className="  w-full rounded-2xl border border-white/10 bg-black/30 py-3.5 pl-11 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition focus:border-[#ffd692]/40 focus:bg-black/40"
                               value={email}
                               onChange={(e) => setEmail(e.target.value)}
                               required
@@ -302,7 +302,7 @@ export default function LoginPage() {
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between px-1">
                             <label className="block text-[10px] font-bold uppercase tracking-widest text-white/50">Secret</label>
-                            <a href="/forgot-password" size={16} className="text-[10px] font-bold text-[#9fd7ff]/70 hover:text-[#9fd7ff] transition">Lost Key?</a>
+                          
                           </div>
                           <div className="relative">
                             <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
