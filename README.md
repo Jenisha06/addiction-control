@@ -232,12 +232,12 @@ If you or someone you know needs immediate help:
 
 ## 👥 Team
 
-Built with ❤️ at **[Hackathon Name] 2025**
 
-| Name | Role |
-|------|------|
-| [Your Name] | Frontend + AI Integration |
-| [Partner Name] | Backend + Firebase |
+
+| Name | 
+|------|
+| jenisha dsouza | 
+| milu achu mathew | 
 
 ---
 
